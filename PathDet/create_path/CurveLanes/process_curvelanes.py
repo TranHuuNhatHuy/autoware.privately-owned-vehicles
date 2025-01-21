@@ -133,7 +133,8 @@ def annotateGT(
         raw_dir, visualization_dir, mask_dir,
         img_width, img_height,
         normalized = True,
-        crop = None
+        resize = None,
+        crop = None,
 ):
     """
     Annotates and saves an image with:
@@ -155,13 +156,13 @@ def annotateGT(
         raw_img = raw_img.crop((
             CROP_LEFT, 
             CROP_TOP, 
-            former_img_width - CROP_RIGHT, 
-            former_img_height - CROP_BOTTOM
+            init_img_width - CROP_RIGHT, 
+            init_img_height - CROP_BOTTOM
         ))
 
     # Define save name
     # Also save in PNG (EXTREMELY SLOW compared to jpg, for lossless quality)
-    save_name = str(img_id_counter).zfill(6) + ".png"
+    save_name = str(img_id_counter).zfill(6) + ".jpg"
 
     # Copy raw img and put it in raw dir.
     raw_img.save(os.path.join(raw_dir, save_name))
@@ -201,28 +202,41 @@ def annotateGT(
     mask.save(os.path.join(mask_dir, save_name))
 
 
-def parseAnnotations(anno_path, crop = None):
+def parseAnnotations(
+        anno_path, 
+        init_img_width,
+        init_img_height,
+        crop = None,
+        resize = None,
+    ):
     """
     Parses lane annotations from raw img + anno files, then extracts normalized GT data.
 
     """
     # Read each line of GT text file as JSON
     with open(anno_path, "r") as f:
-        read_data = f.readlines()
+        read_data = json.load(f)["Lines"]
         if (len(read_data) < 2):    # Some files are empty, or having less than 2 lines
             warnings.warn(f"Parsing {anno_path} : insufficient lane amount: {len(read_data)}")
             return None
         else:
             # Parse data from those JSON lines
-            lanes = []
-            for line in read_data:
-                if line.strip():    # Not an empty line
-                    points = line.strip().split(" ")
-                    lane = [
-                        (float(points[i]), float(points[i + 1]))
-                        for i in range(0, len(points), 2)
-                    ]
-                    lanes.append(lane)
+            lanes = [
+                [(float(point["x"]), float(point["y"])) for point in line]
+                for line in read_data
+            ]
+
+            new_img_height = init_img_height
+            new_img_width = init_img_width
+
+            # Handle image resizing
+            if (resize):
+                new_img_height *= resize
+                new_img_width *= resize
+                lanes = [[
+                    (x * resize, y * resize) 
+                    for (x, y) in lane
+                ] for lane in lanes]
 
             # Handle image cropping
             if (crop):
@@ -231,9 +245,11 @@ def parseAnnotations(anno_path, crop = None):
                 CROP_BOTTOM = crop["BOTTOM"]
                 CROP_LEFT = crop["LEFT"]
                 # Crop
+                new_img_height -= CROP_TOP + CROP_BOTTOM
+                new_img_width -= CROP_LEFT + CROP_RIGHT
                 lanes = [[
                     (x - CROP_LEFT, y - CROP_TOP) for x, y in lane
-                    if (CROP_LEFT <= x <= (former_img_width - CROP_RIGHT)) and (CROP_TOP <= y <= (former_img_height - CROP_BOTTOM))
+                    if (CROP_LEFT <= x <= (init_img_width - CROP_RIGHT)) and (CROP_TOP <= y <= (init_img_height - CROP_BOTTOM))
                 ] for lane in lanes]
                 # Remove empty lanes
                 lanes = [lane for lane in lanes if (lane and len(lane) >= 2)]   # Pick lanes with >= 2 points
@@ -258,11 +274,11 @@ def parseAnnotations(anno_path, crop = None):
 
             # Parse processed data, all coords normalized
             anno_data = {
-                "lanes" : [normalizeCoords(lane, img_width, img_height) for lane in lanes],
+                "lanes" : [normalizeCoords(lane, new_img_width, new_img_height) for lane in lanes],
                 "ego_indexes" : ego_indexes,
-                "drivable_path" : normalizeCoords(drivable_path, img_width, img_height),
-                "img_width" : img_width,
-                "img_height" : img_height,
+                "drivable_path" : normalizeCoords(drivable_path, new_img_width, new_img_height),
+                "img_width" : new_img_width,
+                "img_height" : new_img_height,
             }
 
             return anno_data
@@ -272,20 +288,31 @@ if __name__ == "__main__":
 
     # ============================== Dataset structure ============================== #
 
-    
+    root_dir = "Curvelanes"
+    list_splits = ["train", "valid"]
+    img_dir = "images"
+    label_dir = "labels"
 
-    img_width = 1640
-    img_height = 590
+    # I got this result from `./EDA_imgsizes.ipynb`
+    size_dict = {
+        "beeg" : [2560, 1440],
+        "half_beeg" : [1280, 720],
+        "weird" : [1570, 660],
+    }
+    beeg_y_crop = 240
+    beeg_x_crop = 160
+    weird_y_crop = 130
+    weird_x_crop = 385
 
     # ============================== Parsing args ============================== #
 
     parser = argparse.ArgumentParser(
-        description = "Process CULane dataset - PathDet groundtruth generation"
+        description = "Process CurveLanes dataset - PathDet groundtruth generation"
     )
     parser.add_argument(
         "--dataset_dir", 
         type = str, 
-        help = "CULane directory (contains all unzipped folders from GoogleDrive)",
+        help = "CurveLanes directory (should be exactly `Curvelanes` if you get it from Kaggle)",
         required = True
     )
     parser.add_argument(
@@ -294,15 +321,15 @@ if __name__ == "__main__":
         help = "Output directory",
         required = True
     )
-    parser.add_argument(
-        "--crop",
-        type = int,
-        nargs = 4,
-        help = "Crop image: [TOP, RIGHT, BOTTOM, LEFT]. Must always be 4 ints. Non-cropped sizes are 0.",
-        metavar = ("TOP", "RIGHT", "BOTTOM", "LEFT"),
-        default = [0, 390, 160, 390],    # 2 plus 2 is 4 minus 1 that's 3, quick maths
-        required = False
-    )
+    # parser.add_argument(
+    #     "--crop",
+    #     type = int,
+    #     nargs = 4,
+    #     help = "Crop image: [TOP, RIGHT, BOTTOM, LEFT]. Must always be 4 ints. Non-cropped sizes are 0.",
+    #     metavar = ("TOP", "RIGHT", "BOTTOM", "LEFT"),
+    #     default = [0, 390, 160, 390],    # 2 plus 2 is 4 minus 1 that's 3, quick maths
+    #     required = False
+    # )
     parser.add_argument(
         "--sampling_step",
         type = int,
@@ -336,31 +363,6 @@ if __name__ == "__main__":
         early_stopping = args.early_stopping
     else:
         early_stopping = None
-    
-    # Parse crop
-    if (args.crop):
-        print(f"Cropping image set with sizes:")
-        print(f"\nTOP: {args.crop[0]},\tRIGHT: {args.crop[1]},\tBOTTOM: {args.crop[2]},\tLEFT: {args.crop[3]}")
-        if (args.crop[0] + args.crop[2] >= img_height):
-            warnings.warn(f"Cropping size: TOP = {args.crop[0]} and BOTTOM = {args.crop[2]} exceeds image height of {img_height}. Not cropping.")
-            crop = None
-        elif (args.crop[1] + args.crop[3] >= img_width):
-            warnings.warn(f"Cropping size: LEFT = {args.crop[3]} and RIGHT = {args.crop[1]} exceeds image width of {img_width}. No cropping.")
-            crop = None
-        else:
-            crop = {
-                "TOP" : args.crop[0],
-                "RIGHT" : args.crop[1],
-                "BOTTOM" : args.crop[2],
-                "LEFT" : args.crop[3],
-            }
-            former_img_height = img_height
-            former_img_width = img_width
-            img_height -= crop["TOP"] + crop["BOTTOM"]
-            img_width -= crop["LEFT"] + crop["RIGHT"]
-            print(f"New image size: {img_width}W x {img_height}H.\n")
-    else:
-        crop = None
 
     # Generate output structure
     """
@@ -370,7 +372,6 @@ if __name__ == "__main__":
         |----visualization
         |----drivable_path.json
     """
-    list_splits = ["train", "val", "test"]
     list_subdirs = ["image", "segmentation", "visualization"]
     if (os.path.exists(output_dir)):
         warnings.warn(f"Output directory {output_dir} already exists. Purged")
@@ -382,48 +383,60 @@ if __name__ == "__main__":
 
     # ============================== Parsing annotations ============================== #
 
-    list_train_file = os.path.join(dataset_dir, list_path, f"train.txt")    # Train set
-    list_val_file = os.path.join(dataset_dir, list_path, f"val.txt")        # Val set
-    # Test set, a lil bit tricky since it has 9 cats
-    list_test_file = [
-        os.path.join(dataset_dir, list_path, test_classification, filename)
-        for filename in os.listdir(os.path.join(dataset_dir, list_path, test_classification))
-    ]
-
     # Parse data by batch
     data_master = {}
 
     for split in list_splits:
         print(f"\n==================== Processing {split} data ====================\n")
         img_id_counter = -1
-        if (split in ["train", "val"]):
-            list_files = [os.path.join(dataset_dir, list_path, f"{split}.txt")]    # Train or Val set
-        else:   # Test set and its lil more complicated
-            list_test_classes = os.listdir(os.path.join(dataset_dir, list_path, test_classification))
-            list_files = [
-                os.path.join(dataset_dir, list_path, test_classification, filename)
-                for filename in list_test_classes
-            ]
-        for label_file in list_files:
-            with open(label_file, "r") as f:
-                list_raw_files = f.readlines()
+        raw_img_book = os.path.join(dataset_dir, root_dir, split, f"{split}.txt")
+        with open(raw_img_book, "r") as f:
+            list_raw_files = f.readlines()
 
             for i in range(0, len(list_raw_files), sampling_step):
-                img_path = list_raw_files[i]
+                img_path = os.path.join(dataset_dir, root_dir, split, list_raw_files[i]).strip()
                 img_id_counter += 1
-                img_path = img_path.strip()
-                if (img_path[0] == "/"):
-                    img_path = img_path[1 : ]     # Remove the leading "/" so that path join works
-                anno_path = img_path.replace(".jpg", ".lines.txt")
-                if (split == "test"):
-                    anno_file = os.path.join(dataset_dir, anno_path)
-                else:
-                    anno_file = os.path.join(dataset_dir, new_anno, anno_path)
+                # Preload image file for multiple uses later
+                raw_img = Image.open(img_path)
+                img_width, img_height = raw_img.size
+                img_size = [img_width, img_height]
+                if (img_size == size_dict["beeg"]):
+                    resize = 0.5
+                    crop = {
+                        "TOP" : beeg_y_crop,
+                        "RIGHT" : beeg_x_crop,
+                        "BOTTOM" : beeg_y_crop,
+                        "LEFT" : beeg_x_crop
+                    }
+                elif (img_size == size_dict["half_beeg"]):
+                    resize = None
+                    crop = {
+                        "TOP" : beeg_y_crop,
+                        "RIGHT" : beeg_x_crop,
+                        "BOTTOM" : beeg_y_crop,
+                        "LEFT" : beeg_x_crop
+                    }
+                elif (img_size == size_dict["weird"]):
+                    resize = None
+                    crop = {
+                        "TOP" : weird_y_crop,
+                        "RIGHT" : weird_x_crop,
+                        "BOTTOM" : weird_y_crop,
+                        "LEFT" : weird_x_crop
+                    }
 
-                this_data = parseAnnotations(anno_file, crop)
+                anno_path = img_path.replace(".jpg", ".lines.json").replace(img_dir, label_dir)
+
+                this_data = parseAnnotations(
+                    anno_path = anno_path,
+                    init_img_width = img_width,
+                    init_img_height = img_height,
+                    resize = resize,
+                    crop = crop
+                )
                 if (this_data is not None):
 
-                    print(f"Processing data in label file {anno_file}.")
+                    print(f"Processing data in label file {anno_path}.")
                     annotateGT(
                         anno_entry = this_data,
                         anno_raw_file = os.path.join(dataset_dir, img_path),
@@ -432,6 +445,7 @@ if __name__ == "__main__":
                         mask_dir = os.path.join(output_dir, "segmentation"),
                         img_height = img_height,
                         img_width = img_width,
+                        resize = resize,
                         crop = crop
                     )
 
