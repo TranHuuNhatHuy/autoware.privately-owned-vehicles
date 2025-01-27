@@ -6,9 +6,10 @@ from torchvision import transforms
 import sys
 sys.path.append('..')
 from model_components.scene_seg_network import SceneSegNetwork
+from model_components.scene_3d_network import Scene3DNetwork
 
 
-class SceneSegNetworkInfer():
+class Scene3DNetworkInfer():
     def __init__(self, checkpoint_path = ''):
 
         # Image loader
@@ -24,7 +25,8 @@ class SceneSegNetworkInfer():
         print(f'Using {self.device} for inference')
             
         # Instantiate model, load to device and set to evaluation mode
-        self.model = SceneSegNetwork()
+        sceneSegNetwork = SceneSegNetwork()
+        self.model = Scene3DNetwork(sceneSegNetwork)
 
         if(len(checkpoint_path) > 0):
             self.model.load_state_dict(torch.load \
