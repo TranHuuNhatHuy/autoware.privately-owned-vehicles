@@ -10,26 +10,6 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-anomaly_dict = {
-    "one-sided-anchors" : {
-        "count" : 0,
-        "list" : []
-    },
-    "non-mid-egopath" : {
-        "count" : 0,
-        "list" : {}
-    },
-    "too-short-egopath" : {
-        "count" : 0,
-        "list" : {}
-    },
-    "too-steep-egopath" : {
-        "count" : 0,
-        "list" : {}
-    },
-}
-
-
 # ============================= Format functions ============================= #
 
 
@@ -42,14 +22,6 @@ def round_line_floats(line, ndigits = 6):
         ]
     line = tuple(line)
     return line
-
-
-def add_anomaly(frame_id, anomaly_code, drivable_path = None):
-    anomaly_dict[anomaly_code]["count"] += 1
-    if (drivable_path):
-        anomaly_dict[anomaly_code]["list"][frame_id] = drivable_path
-    else:
-        anomaly_dict[anomaly_code]["list"].append(frame_id)
 
 
 # Custom warning format cuz the default one is wayyyyyy too verbose
@@ -132,20 +104,20 @@ def getLineAnchor(line, new_img_height):
     return (x0, a, b)
 
 
-def getEgoIndexes(frame_id, anchors, new_img_width):
+def getEgoIndexes(anchors, new_img_width):
     """
     Identifies 2 ego lanes - left and right - from a sorted list of line anchors.
     """
     for i in range(len(anchors)):
         if (anchors[i][0] >= new_img_width / 2):
             if (i == 0):
-                add_anomaly(frame_id, "one-sided-anchors")
-                return "NO LINES on the LEFT side of frame. Something's sussy out there!"
+                print("NO LINES on the LEFT side of frame. Registering 2 first lines on the RIGHT as egolines.")
+                return (anchors[i], anchors[i + 1])
             left_ego_idx, right_ego_idx = i - 1, i
             return (left_ego_idx, right_ego_idx)
         
-    add_anomaly(frame_id, "one-sided-anchors")
-    return "NO LINES on the RIGHT side of frame. Something's sussy out there!"
+    print("NO LINES on the RIGHT side of frame. Registering 2 last lines on the LEFT as egolines.")
+    return (anchors[-2], anchors[-1])
 
 
 def getDrivablePath(
@@ -244,22 +216,15 @@ def getDrivablePath(
 
                 drivable_path.append((x_top, y_top))
 
-    # Now check drivable path's params for automatic auditting
-
-    drivable_path_angle_deg = math.degrees(math.atan(float(
-        abs(drivable_path[-1][1] - drivable_path[0][1]) / \
-        abs(drivable_path[-1][0] - drivable_path[0][0])
-    )))
-
-    if not (new_img_width * LEFT_ANCHOR_BOUNDARY <= drivable_path[0][0] <= new_img_width * (1 - RIGHT_ANCHOR_BOUNDARY)):
-        add_anomaly(frame_id, "non-mid-egopath", drivable_path)
-        return f"Drivable path has anchor point out of heuristic boundary [{LEFT_ANCHOR_BOUNDARY} , {1 - RIGHT_ANCHOR_BOUNDARY}], ignoring this frame!"
-    elif not (drivable_path[-1][1] < new_img_height * (1 - HEIGHT_BOUNDARY)):
-        add_anomaly(frame_id, "too-short-egopath", drivable_path)
-        return f"Drivable path has length not exceeding heuristic length of {HEIGHT_BOUNDARY * 100}% frame height, ignoring this frame!"
-    elif not (drivable_path_angle_deg >= ANGLE_BOUNDARY):
-        add_anomaly(frame_id, "too-steep-egopath", drivable_path)
-        return f"Drivable path has angle not exceeding heuristic angle of {ANGLE_BOUNDARY} degrees, ignoring this frame!"
+    # if not (new_img_width * LEFT_ANCHOR_BOUNDARY <= drivable_path[0][0] <= new_img_width * (1 - RIGHT_ANCHOR_BOUNDARY)):
+    #     add_anomaly(frame_id, "non-mid-egopath", drivable_path)
+    #     return f"Drivable path has anchor point out of heuristic boundary [{LEFT_ANCHOR_BOUNDARY} , {1 - RIGHT_ANCHOR_BOUNDARY}], ignoring this frame!"
+    # elif not (drivable_path[-1][1] < new_img_height * (1 - HEIGHT_BOUNDARY)):
+    #     add_anomaly(frame_id, "too-short-egopath", drivable_path)
+    #     return f"Drivable path has length not exceeding heuristic length of {HEIGHT_BOUNDARY * 100}% frame height, ignoring this frame!"
+    # elif not (drivable_path_angle_deg >= ANGLE_BOUNDARY):
+    #     add_anomaly(frame_id, "too-steep-egopath", drivable_path)
+    #     return f"Drivable path has angle not exceeding heuristic angle of {ANGLE_BOUNDARY} degrees, ignoring this frame!"
 
     return drivable_path
 
