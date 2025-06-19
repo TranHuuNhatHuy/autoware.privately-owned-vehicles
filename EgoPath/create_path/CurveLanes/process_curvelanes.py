@@ -384,7 +384,6 @@ def parseAnnotations(
             ]
 
             ego_indexes = getEgoIndexes(
-                frame_id,
                 [anchor[1] for anchor in line_anchors],
                 new_img_width
             )
