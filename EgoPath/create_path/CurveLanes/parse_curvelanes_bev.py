@@ -129,10 +129,11 @@ def polyfit_BEV(
 
     fitted_bev_egopath = tuple(zip(x_new, y_new))
 
-    flag_list = [
-        True if (0 <= point[0] <= BEV_W) else False
-        for point in fitted_bev_egopath
-    ]
+    flag_list = [0] * len(fitted_bev_egopath)
+    for i in range(len(flag_list)):
+        if (0 <= fitted_bev_egopath[i][0] <= BEV_W):
+            flag_list[i] = 1
+            break
     
     return fitted_bev_egopath, flag_list
 
