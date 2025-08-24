@@ -24,15 +24,15 @@ def main():
     # ====================== Loading datasets ====================== #
 
     # Root
-    ROOT_PATH = 'DATASET ROOT HERE (INCLUDING MULTIPLE PROCESSED DATASETS)' #args.root
+    ROOT_PATH = '/home/tranhuunhathuy/Documents/Autoware/POV_train/pov_datasets/' #args.root
 
     # Model save root path
-    MODEL_SAVE_ROOT_PATH = '{PATH TO POV PROJECT ROOT}/Models/saves/AutoSteer/models/' #args.model_save_root_path
+    MODEL_SAVE_ROOT_PATH = '/home/tranhuunhathuy/Documents/Autoware/POV_train/autoware.privately-owned-vehicles/Models/saves/AutoSteer/models/' #args.model_save_root_path
     if (not os.path.exists(MODEL_SAVE_ROOT_PATH)):
         os.makedirs(MODEL_SAVE_ROOT_PATH)
 
     # Visualizations save root path
-    VIS_SAVE_ROOT_PATH = '{PATH TO POV PROJECT ROOT}/Models/saves/AutoSteer/figures/' #args.vis_save_root_path
+    VIS_SAVE_ROOT_PATH = '/home/tranhuunhathuy/Documents/Autoware/POV_train/autoware.privately-owned-vehicles/Models/saves/AutoSteer/figures/' #args.vis_save_root_path
     if (not os.path.exists(VIS_SAVE_ROOT_PATH)):
         os.makedirs(VIS_SAVE_ROOT_PATH)
 
@@ -103,10 +103,10 @@ def main():
     trainer.zero_grad()
     
     # Training loop parameters
-    NUM_EPOCHS = 50
-    LOGSTEP_LOSS = 100
-    LOGSTEP_VIS = 200
-    LOGSTEP_MODEL = 10000
+    NUM_EPOCHS = 10
+    LOGSTEP_LOSS = 250
+    LOGSTEP_VIS = 1000
+    LOGSTEP_MODEL = 30000
 
     # Val visualization param
     N_VALVIS = 25
@@ -141,7 +141,7 @@ def main():
 
         # Augmentation Schedule
         apply_augmentation = True
-        if (epoch > 35):
+        if (epoch > 7):
             apply_augmentation = False
 
         # Shuffle overall data list at start of epoch
