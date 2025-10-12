@@ -25,8 +25,8 @@ def main():
     # ====================== Loading datasets ====================== #
 
     # Root
-    ROOT_PATH   = "DATASET ROOT HERE (INCLUDING MULTIPLE PROCESSED DATASETS)"
-    POV_PATH    = "PATH TO POV PROJECT ROOT"
+    ROOT_PATH   = "/mnt/Storage/pov_datasets/"
+    POV_PATH    = "/home/tranhuunhathuy/Documents/Autoware/autoware.privately-owned-vehicles/"
 
     # Model save root path
     MODEL_SAVE_ROOT_PATH = os.path.join(
@@ -117,7 +117,7 @@ def main():
     NUM_EPOCHS = 10
     LOGSTEP_LOSS = 250
     LOGSTEP_VIS = 1000
-    LOGSTEP_MODEL = 30000
+    LOGSTEP_MODEL = 15000
 
     # Val visualization param
     N_VALVIS = 25
@@ -142,12 +142,12 @@ def main():
         #elif (epoch > 40):
         #    batch_size = 4
       
-        # Learning Rate Schedule
-        if (epoch <= 3):
-            trainer.set_learning_rate(0.0005)
-        elif(epoch > 3 and epoch <= 7):
+        # Annealing schedule
+        if (epoch < 2):
+            batch_size = 9
             trainer.set_learning_rate(0.0001)
-        elif(epoch > 7):
+        else:
+            batch_size = 3
             trainer.set_learning_rate(0.00005)
 
         # Augmentation Schedule

@@ -114,12 +114,9 @@ def getLineAnchor(
     """
     (x2, y2) = line[0]
     (x1, y1) = line[
-        # int(len(line) / 5) 
-        # if (
-        #     len(line) > 5 and
-        #     line[0][1] >= H * 0.8
-        # ) else 1
-        int(len(line) / 2)
+        int(len(line) / 20)
+        if (len(line) > 20) 
+        else 1
     ]
     if (verbose):
         print(f"Anchor points chosen: ({x1}, {y1}), ({x2}, {y2})")
