@@ -21,8 +21,8 @@ class AutoSteerNetwork(nn.Module):
         # BEV Path Context
         self.AutoSteerContext = AutoSteerContext()
 
-        # AutoSteer Prediction Head
-        self.AutoSteerHead = AutoSteerHead()
+        # # AutoSteer Prediction Head
+        # self.AutoSteerHead = AutoSteerHead()
 
         # EgoPath Neck
         self.EgopathNeck = EgoPathNeck()
@@ -36,7 +36,7 @@ class AutoSteerNetwork(nn.Module):
         fused_features = self.BackboneFeatureFusion(features)
         context = self.AutoSteerContext(fused_features)
         neck = self.EgopathNeck(context, features)
-        path_prediction = self.AutoSteerHead(context)
+        # path_prediction = self.AutoSteerHead(context)
         seg_prediction = self.EgoPathHead(neck, features)
         
         return path_prediction, seg_prediction
