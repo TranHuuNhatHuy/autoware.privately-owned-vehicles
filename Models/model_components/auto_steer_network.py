@@ -39,4 +39,4 @@ class AutoSteerNetwork(nn.Module):
         # path_prediction = self.AutoSteerHead(context)
         seg_prediction = self.EgoPathHead(neck, features)
         
-        return path_prediction, seg_prediction
+        return seg_prediction
