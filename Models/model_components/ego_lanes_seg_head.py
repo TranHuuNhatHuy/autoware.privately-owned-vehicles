@@ -3,6 +3,7 @@ import torch.nn as nn
 
 
 class EgoLanesSegHead(nn.Module):
+    
     def __init__(self):
         super(EgoLanesSegHead, self).__init__()
         # Standard
@@ -21,3 +22,33 @@ class EgoLanesSegHead(nn.Module):
 
         # Final output layer - 3 channels for ego left, ego right, and other lanes
         self.final_layer = nn.Conv2d(16, 3, 1, 1)
+
+    
+    def forward(self, neck, features):
+
+        # Decoder upsample block 4
+        # Upsample
+        d7 = self.upsample_layer_3(neck)
+         # Expand and add layer from Encoder
+        d7 = d7 + self.skip_link_layer_3(features[0])
+        # Double convolution
+        d7 = self.decode_layer_6(d7)
+        d7 = self.GeLU(d7)
+        d8 = self.decode_layer_7(d7)
+        d8 = self.GeLU(d8)
+
+        # Decoder upsample block 5
+        # Upsample
+        d8 = self.upsample_layer_4(d8)
+        # Triple convolution
+        d8 = self.decode_layer_8(d8)
+        d8 = self.GeLU(d8)
+        d9 = self.decode_layer_9(d8)
+        d9 = self.GeLU(d9)
+        d10 = self.decode_layer_10(d9)
+        d10 = self.GeLU(d10)
+
+        # Prediction
+        output = self.final_layer(d10)
+        
+        return output
