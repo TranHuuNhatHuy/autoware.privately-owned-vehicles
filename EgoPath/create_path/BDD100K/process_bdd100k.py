@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 from PIL import Image, ImageDraw
+from tqdm import tqdm
 import warnings
 import numpy as np
 import cv2
@@ -22,7 +23,11 @@ def extractMaskFromPNG(dir):
 
     mask_np_list = []
 
-    for f in files:
+    for f in tqdm(
+        files,
+        desc = "Extracting masks: ",
+        colour = "green"
+    ):
         mask_path = os.path.join(dir, f)
         # Load the image
         img = Image.open(mask_path).convert("RGB")
@@ -580,89 +585,92 @@ if __name__ == '__main__':
     data_master = {}
 
     name_data = {}
-    print('Extracting mask from mask_dir')
+    print(f"Extracting masks from {mask_dir}")
     img_id_counter = 0
-    for mask_sub_dir in mask_sub_dirs:
-        print(f'Extracting mask from mask_dir number {mask_sub_dir}')
-        mask_np_list, name_list = extractMaskFromPNG(os.path.join(mask_dir,mask_sub_dir))
-        
-        print(f'Start Mask Procressing of sub_dir number {mask_sub_dir}')
-        
-        # Iterate over each mask and corresponding image
-        for index, mask_np in enumerate(mask_np_list):
-            # Generate the save name for the image (6-digit format)
-            save_name = str(img_id_counter).zfill(6)
-            # print(name_list[img_id_counter])
 
-            # Get the image file path and open the image
-            image_path = os.path.join(image_dir, name_list[index].replace('png','jpg'))
-            image = Image.open(image_path).convert("RGB")
+    mask_np_list, name_list = extractMaskFromPNG(mask_dir)
+    print(f"Extracting masks done!")
 
-            # Detect edges in the mask
-            edges = detectEdge(mask_np)
+    # Iterate over each mask and corresponding image
+    print(f"Main process of annotating masks initiated!")
+    for index, mask_np in tqdm(
+        enumerate(mask_np_list),
+        desc = "Mask/image pairs: ",
+        colour = "yellow"
+    ):
+        # Generate the save name for the image (6-digit format)
+        save_name = str(img_id_counter).zfill(6)
+        # print(name_list[img_id_counter])
 
-            # Exclude isolated top and bottom edges from the detected edges
-            new_edges_point_list = excludeTopBottomEdge(edges, x_threshold=5, y_threshold=1)
+        # Get the image file path and open the image
+        image_path = os.path.join(image_dir, name_list[index].replace('png','jpg'))
+        image = Image.open(image_path).convert("RGB")
 
-            # Convert the list of edge points back into a mask
-            edges = fromPointToMask(new_edges_point_list,former_img_width,former_img_height ,show=False)
+        # Detect edges in the mask
+        edges = detectEdge(mask_np)
 
-            # Filter out any one-point edges from the mask
-            edges = filterOnePointEdge(edges)
+        # Exclude isolated top and bottom edges from the detected edges
+        new_edges_point_list = excludeTopBottomEdge(edges, x_threshold=5, y_threshold=1)
 
-            # For debugging show image
-            # showImage(edges)
+        # Convert the list of edge points back into a mask
+        edges = fromPointToMask(new_edges_point_list,former_img_width,former_img_height ,show=False)
 
-            # Cut chipped edge from the mask
-            edges = cutChippedEdge(edges)
+        # Filter out any one-point edges from the mask
+        edges = filterOnePointEdge(edges)
 
-            # For debugging show image
-            # showImage(edges)
-            if crop:
-                edges = cropMask(edges,crop)
-            # For debugging show image
-            # showImage(edges)
+        # For debugging show image
+        # showImage(edges)
 
-            # Detect the left and right ego lanes (representing the drivable area)
-            left_ego, right_ego = getEgoLane(edge_mask=edges)
-            if len(left_ego) <= 5 or len(right_ego) <=5:
-                continue
-            # Generate the drivable path by connecting the left and right ego lanes
-            # drivable_path = getDrivablePath(left_ego, right_ego)
+        # Cut chipped edge from the mask
+        edges = cutChippedEdge(edges)
 
-            # Copy the original image and save it to the 'image' directory
-            copy_image = image.copy()
-            # Define the bounding box (left, upper, right, lower)
-            crop_box = (crop['LEFT'], crop['TOP'], crop['LEFT']+img_width, crop['TOP']+img_height)
+        # For debugging show image
+        # showImage(edges)
+        if crop:
+            edges = cropMask(edges,crop)
+        # For debugging show image
+        # showImage(edges)
 
-            # Crop the image
-            cropped_image = copy_image.crop(crop_box)
-            cropped_image.save(os.path.join(output_dir, 'image', save_name + ".jpg"))
+        # Detect the left and right ego lanes (representing the drivable area)
+        left_ego, right_ego = getEgoLane(edge_mask=edges)
+        if len(left_ego) <= 5 or len(right_ego) <=5:
+            continue
+        # Generate the drivable path by connecting the left and right ego lanes
+        # drivable_path = getDrivablePath(left_ego, right_ego)
 
-            # Annotate the image with the drivable path and ego lanes, then save it to the 'visualization' directory
-            annotated_image = annotateImage(cropped_image, left_ego, right_ego)
-            annotated_image.save(os.path.join(output_dir, "visualization", save_name + ".jpg"))
+        # Copy the original image and save it to the 'image' directory
+        copy_image = image.copy()
+        # Define the bounding box (left, upper, right, lower)
+        crop_box = (crop['LEFT'], crop['TOP'], crop['LEFT']+img_width, crop['TOP']+img_height)
 
-            # Generate a segmentation mask for the drivable path and save it to the 'segmentation' directory
-            segmentation_mask = drawLaneSegMask(left_ego, right_ego, img_width, img_height)
-            segmentation_mask.save(os.path.join(output_dir, "mask", save_name + ".png"))
+        # Crop the image
+        cropped_image = copy_image.crop(crop_box)
+        cropped_image.save(os.path.join(output_dir, 'image', save_name + ".jpg"))
 
-            # Prepare annotation data for the current image (normalized drivable path coordinates)
-            anno_data = {}
-            anno_data[str(img_id_counter).zfill(6)] = {
-                # "drivable_path": normalizeCoords(drivable_path, img_width, img_height),
-                "egoleft_lane"  : normalizeCoords(left_ego , img_width, img_height),
-                "egoright_lane" : normalizeCoords(right_ego, img_width, img_height),
-                # "img_width": img_width,
-                # "img_height": img_height,
-            }
+        # Annotate the image with the drivable path and ego lanes, then save it to the 'visualization' directory
+        annotated_image = annotateImage(cropped_image, left_ego, right_ego)
+        annotated_image.save(os.path.join(output_dir, "visualization", save_name + ".jpg"))
 
-            # Update the master data structure with the new annotation data
-            data_master.update(anno_data)
+        # Generate a segmentation mask for the drivable path and save it to the 'segmentation' directory
+        segmentation_mask = drawLaneSegMask(left_ego, right_ego, img_width, img_height)
+        segmentation_mask.save(os.path.join(output_dir, "mask", save_name + ".png"))
 
-            name_data[str(img_id_counter).zfill(6)] = name_list[index]
-            img_id_counter += 1
-        print(f"Done processing data with {img_id_counter} entries.\n")
+        # Prepare annotation data for the current image (normalized drivable path coordinates)
+        anno_data = {}
+        anno_data[str(img_id_counter).zfill(6)] = {
+            # "drivable_path": normalizeCoords(drivable_path, img_width, img_height),
+            "egoleft_lane"  : normalizeCoords(left_ego , img_width, img_height),
+            "egoright_lane" : normalizeCoords(right_ego, img_width, img_height),
+            # "img_width": img_width,
+            # "img_height": img_height,
+        }
+
+        # Update the master data structure with the new annotation data
+        data_master.update(anno_data)
+
+        name_data[str(img_id_counter).zfill(6)] = name_list[index]
+        img_id_counter += 1
+    print(f"Done processing data with {img_id_counter} entries.\n")
 
 
     # Print the total number of entries processed

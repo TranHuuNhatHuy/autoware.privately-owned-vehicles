@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 from PIL import Image
+from tqdm import tqdm
 import argparse
 
 
@@ -21,7 +22,7 @@ def filterFileNames(mask_dir, json_file, max_files):
     :return: List of filtered filenames.
     """
     name_list = []
-    for file in json_file:
+    for file in tqdm(json_file):
         # Check if 'labels' key exists and is valid
         if 'labels' not in file or not file['labels']:
             continue
