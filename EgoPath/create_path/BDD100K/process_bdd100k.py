@@ -91,6 +91,48 @@ def fromMaskToPoint(mask_np,direction = 'x'):
 
     return edge_point_list
 
+def calcLaneSegMask(
+    lanes, 
+    width, height,
+    normalized: bool = True
+):
+    """
+    Calculates binary segmentation mask for some lane lines.
+
+    """
+
+    # Create blank mask as new Image
+    bin_seg = np.zeros(
+        (height, width), 
+        dtype = np.uint8
+    )
+    bin_seg_img = Image.fromarray(bin_seg)
+
+    # Draw lines on mask
+    draw = ImageDraw.Draw(bin_seg_img)
+    for lane in lanes:
+        if (normalized):
+            lane = [
+                (
+                    x * width, 
+                    y * height
+                ) 
+                for x, y in lane
+            ]
+        draw.line(
+            lane, 
+            fill = 255, 
+            width = 4
+        )
+    
+    # Convert back to numpy array
+    bin_seg = np.array(
+        bin_seg_img, 
+        dtype = np.uint8
+    )
+    
+    return bin_seg
+
 def fromPointToMask(point_list, img_width = 1280, img_height = 720, show = False):
     """
     Converts a list of points into a binary mask image.
@@ -378,21 +420,28 @@ def getDrivablePath(left_ego, right_ego):
 
     return drivable_path
     
-def annotateImage(image, ego_lanes, drivable_path):
+def annotateImage(image, egoleft, egoright):
     """
     Annotate the image with detected lanes.
-    - Green: Ego Lanes
-    - Yellow: Drivable Path
-    - Red: Other Lanes (no other lanes)
+    - Red: egoleft
+    - Green: egoright
+    There are no other lanes
     """
     draw = ImageDraw.Draw(image)
 
-    # Draw ego lanes in green
-    for ego_lane in ego_lanes:
-        draw.line([(x, y) for x, y in ego_lane], fill=(0, 255, 0), width=5)
+    # Egoleft, red
+    draw.line(
+        [(x, y) for x, y in egoleft], 
+        fill = (255, 0, 0), 
+        width = 5
+    )
 
-    # Draw drivable path in yellow
-    draw.line([(x, y) for x, y in drivable_path], fill=(255, 255, 0), width=5)
+    # Egoright, green
+    draw.line(
+        [(x, y) for x, y in egoright], 
+        fill = (0, 255, 0), 
+        width = 5
+    )
 
     return image
 
@@ -402,6 +451,35 @@ def drawDrivablePathMask(drivable_path,img_width = 1280, img_height = 720):
     # Draw the drivable path on the mask
     draw = ImageDraw.Draw(mask)
     draw.line(drivable_path, fill=255, width=5)  
+
+    return mask
+
+def drawLaneSegMask(
+        egoleft_lane,
+        egoright_lane,
+        img_width = 1280, 
+        img_height = 720
+):
+    # Create segmentation masks:
+    # Channel 1: egoleft lane
+    # Channel 2: egoright lane
+    mask = np.zeros(
+        (img_height, img_width, 3), 
+        dtype = np.uint8
+    )
+    mask[:, :, 0] = calcLaneSegMask(
+        [egoleft_lane], 
+        img_width, img_height, 
+        normalized = False
+    )
+    mask[:, :, 1] = calcLaneSegMask(
+        [egoright_lane], 
+        img_width, img_height, 
+        normalized = False
+    )
+
+    # Draw
+    mask = Image.fromarray(mask).convert("RGB")
 
     return mask
 
@@ -475,7 +553,7 @@ if __name__ == '__main__':
     """
     --output_dir
         |----image
-        |----segmentation
+        |----mask
         |----visualization
         |----drivable_path.json
     """
@@ -483,14 +561,17 @@ if __name__ == '__main__':
     image_dir = args.image_dir
     output_dir = args.output_dir
 
-    list_subdirs = ["image", "segmentation", "visualization"]
+    list_subdirs = ["image", "mask", "visualization"]
     for subdir in list_subdirs:
         subdir_path = os.path.join(output_dir, subdir)
         if (not os.path.exists(subdir_path)):
             os.makedirs(subdir_path, exist_ok = True)
 
     # Separate files to stop it from crashing
-    mask_sub_dirs = [d for d in os.listdir(mask_dir) if os.path.isdir(os.path.join(mask_dir, d))]
+    mask_sub_dirs = [
+        d for d in os.listdir(mask_dir) 
+        if os.path.isdir(os.path.join(mask_dir, d))
+    ]
 
 
     # Read the label JSON file and extract mask data and corresponding image names
@@ -510,7 +591,7 @@ if __name__ == '__main__':
         # Iterate over each mask and corresponding image
         for index, mask_np in enumerate(mask_np_list):
             # Generate the save name for the image (6-digit format)
-            save_name = str(img_id_counter).zfill(6) + ".png"
+            save_name = str(img_id_counter).zfill(6)
             # print(name_list[img_id_counter])
 
             # Get the image file path and open the image
@@ -547,7 +628,7 @@ if __name__ == '__main__':
             if len(left_ego) <= 5 or len(right_ego) <=5:
                 continue
             # Generate the drivable path by connecting the left and right ego lanes
-            drivable_path = getDrivablePath(left_ego, right_ego)
+            # drivable_path = getDrivablePath(left_ego, right_ego)
 
             # Copy the original image and save it to the 'image' directory
             copy_image = image.copy()
@@ -556,22 +637,24 @@ if __name__ == '__main__':
 
             # Crop the image
             cropped_image = copy_image.crop(crop_box)
-            cropped_image.save(os.path.join(output_dir, 'image', save_name))
+            cropped_image.save(os.path.join(output_dir, 'image', save_name + ".jpg"))
 
             # Annotate the image with the drivable path and ego lanes, then save it to the 'visualization' directory
-            annotated_image = annotateImage(cropped_image, [left_ego, right_ego], drivable_path)
-            annotated_image.save(os.path.join(output_dir, "visualization", save_name))
+            annotated_image = annotateImage(cropped_image, left_ego, right_ego)
+            annotated_image.save(os.path.join(output_dir, "visualization", save_name + ".jpg"))
 
             # Generate a segmentation mask for the drivable path and save it to the 'segmentation' directory
-            segmentation_mask = drawDrivablePathMask(drivable_path, img_width, img_height)
-            segmentation_mask.save(os.path.join(output_dir, "segmentation", save_name))
+            segmentation_mask = drawLaneSegMask(left_ego, right_ego, img_width, img_height)
+            segmentation_mask.save(os.path.join(output_dir, "mask", save_name + ".png"))
 
             # Prepare annotation data for the current image (normalized drivable path coordinates)
             anno_data = {}
             anno_data[str(img_id_counter).zfill(6)] = {
-                "drivable_path": normalizeCoords(drivable_path, img_width, img_height),
-                "img_width": img_width,
-                "img_height": img_height,
+                # "drivable_path": normalizeCoords(drivable_path, img_width, img_height),
+                "egoleft_lane"  : normalizeCoords(left_ego , img_width, img_height),
+                "egoright_lane" : normalizeCoords(right_ego, img_width, img_height),
+                # "img_width": img_width,
+                # "img_height": img_height,
             }
 
             # Update the master data structure with the new annotation data
