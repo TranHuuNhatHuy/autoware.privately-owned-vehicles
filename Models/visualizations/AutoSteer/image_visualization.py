@@ -14,7 +14,7 @@ def make_visualization(
 ):
     
     # Prepping canvas
-    vis_predict_object = np.zeros((320, 640, 3), dtype = "uint8")
+    vis_predict_object = np.zeros((80, 160, 3), dtype = "uint8")
 
     # Fetch predictions and groundtruth labels
     pred_egoleft_lanes  = np.where(prediction[0,:,:] > 0)
@@ -49,6 +49,13 @@ def make_visualization(
             pred_other_lanes[1],
             i
         ] = others_color[i]
+
+    # Upsample vis predict to match default size
+    vis_predict_object = cv2.resize(
+        vis_predict_object,
+        (640, 320),
+        interpolation = cv2.INTER_NEAREST
+    )
 
     # Fuse image with mask
     fused_image = cv2.addWeighted(
