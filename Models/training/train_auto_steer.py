@@ -111,7 +111,8 @@ def main():
 
     CHECKPOINT_PATH = None #args.checkpoint_path
     if (CHECKPOINT_PATH != None):
-        trainer = AutoSteerTrainer(checkpoint_path = CHECKPOINT_PATH)    
+        trainer = AutoSteerTrainer(checkpoint_path = CHECKPOINT_PATH)
+        print(f"Loaded pre-trained model from checkpoint: {CHECKPOINT_PATH}")
     else:
         trainer = AutoSteerTrainer()
     
