@@ -1,5 +1,19 @@
 import cv2
 
+"""
+
+VisionPilot 0.5 first release
+
+This script processes a video file frame by frame to perform lane detection,
+as well as curve parameters estimation (lane offset, yaw angle, curvature) using
+a bird's-eye view (BEV) transformation.
+
+"""
+
+
+
+
+
 def main():
 
     video_filepath = "/mnt/Storage/Daihatsu/video_frames.avi"
