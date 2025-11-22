@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 """
 
@@ -11,7 +12,30 @@ a bird's-eye view (BEV) transformation.
 """
 
 
+def crop_and_rescale(
+        frame: np.ndarray,
+        crop_margin: tuple[int, int, int, int],
+        rescale_size: tuple[int, int],
+):
+    """
+    Crop and rescale the input frame.
 
+    Args:
+        frame (np.ndarray): Input video frame.
+        crop_margin (tuple[int, int, int, int]): Margins to crop (top, right, bottom, left).
+        rescale_size (tuple[int, int]): Desired output size (width, height).
+    Returns:
+        np.ndarray: Cropped and rescaled frame.
+    """
+
+    top, right, bottom, left = crop_margin
+    cropped = frame[
+        top  : frame.shape[0] - bottom, 
+        left : frame.shape[1] - right
+    ]
+    rescaled = cv2.resize(cropped, rescale_size)
+
+    return rescaled
 
 
 def main():
