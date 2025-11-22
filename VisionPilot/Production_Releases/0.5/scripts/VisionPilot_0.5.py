@@ -8,37 +8,46 @@ def main():
     
     cap = cv2.VideoCapture(video_filepath)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    frame_interval = int(fps / 10)
+    print(f"Video FPS: {fps}")
 
-    frame_count = 0
-    saved_frame_count = 0
+    try:
+        while cap.isOpened():
+            
+            # Read data
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-    while cap.isOpened():
-        
-        # Read data
-        ret, frame = cap.read()
-        if not ret:
-            break
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(int(1000 / fps)) & 0xFF
 
-        # Crop: 2880 × 1860 ---> 2880 x 1440
+            # Quit on Q or ESC
+            if ((key == ord("q")) or (key == 27)):
+                break
 
-        # Rescale---> 640 x 320
+            # Crop: 2880 × 1860 ---> 2880 x 1440
 
-        # Run inference
+            # Rescale---> 640 x 320
 
-        # Show raw binary mask (must be normalized so we can use homography)
+            # Run inference
 
-        # Convert raw binary mask to BEV using homography
+            # Show raw binary mask (must be normalized so we can use homography)
 
-        # Process BEV to extract lane points
+            # Convert raw binary mask to BEV using homography
 
-        # Show BEV masks (debugging purpose)
+            # Process BEV to extract lane points
 
-        # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
+            # Show BEV masks (debugging purpose)
 
-        # Show BEV vis with the curve parameters and sliding windows and basically everything that helps us debug
+            # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
 
-    cap.release()
+            # Show BEV vis with the curve parameters and sliding windows and basically everything that helps us debug
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
