@@ -1,3 +1,19 @@
+import cv2
+
+"""
+
+This script finds the homography matrix to transform a cropped image of a road scene
+into a bird eye view (BEV) grid. The homography is computed using manually defined source
+and destination points.
+
+Standard frame:
+- Location: VisionPilot/Production_Releases/0.5/scripts/assets/standard_frame.jpg
+- Resolution: 2880 x 1860
+- Cropped resolution: 2880 x 1440
+- BEV grid resolution: 640 x 640
+
+"""
+
 # INPUT : cropped-only image (2880 x 1440)
 
 # 1. Read raw image (2880 x 1860)
