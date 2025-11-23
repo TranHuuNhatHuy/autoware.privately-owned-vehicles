@@ -30,6 +30,10 @@ class BEVHomography:
             "./assets/standard_frame.jpg"
         )
 
+        # Crop upper part of the image to get 2880 x 1440
+        CROPPED_H = 1860 - 1440
+        self.standard_frame = self.standard_frame[CROPPED_H : , :]
+
         # MANUALLY DEFINED SOURCE POINTS
         # Define manually 4 source points by picking the best frame where car 
         # is perfectly straight (so egoleft/right make perfect trapezoid)
@@ -69,6 +73,7 @@ class BEVHomography:
         """
         Compute the homography matrix from the cropped image to the BEV grid.
         """
+
         h, w = cropped_image.shape[:2]
 
         # Convert normalized source points to pixel coordinates
