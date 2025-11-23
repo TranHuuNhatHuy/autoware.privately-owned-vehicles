@@ -47,4 +47,13 @@ class BEVHomography:
             for x, y in RAW_SRC_POINTS
         ]
 
-        
+        # Destination points, for a BEV grid of 640 x 640
+        # They are NOT normalized
+        self.dst_points = [
+            (159, 639),  # left bottom
+            (479, 639),  # right bottom
+            (159, 0),    # left top
+            (479, 0)     # right top
+        ]
+
+    
