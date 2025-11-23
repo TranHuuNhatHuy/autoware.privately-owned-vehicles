@@ -42,13 +42,12 @@ def crop_and_rescale(
 
 def main():
 
-    video_filepath = "/mnt/Storage/Daihatsu/video_frames.avi"
-
+    # Read homography (should be computed once with findHomography)
     BEVHomography = BEVHomography()
     homomatrix    = BEVHomography.homography_matrix
-
-    # Read homography (should be computed once with findHomography)
     
+    # Prep video
+    video_filepath = "/mnt/Storage/Daihatsu/video_frames.avi"
     cap = cv2.VideoCapture(video_filepath)
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video FPS: {fps}")
@@ -56,16 +55,19 @@ def main():
     try:
         while cap.isOpened():
             
-            # Read data
+            # Read frame
             ret, frame = cap.read()
             if not ret:
                 break
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            # Crop: 2880 × 1860 ---> 2880 x 1440
-
-            # Rescale---> 640 x 320
+            # Crop + rescale: 2880 × 1860 ---crop---> 2880 x 1440 ---rescale---> 640 x 320
+            frame = crop_and_rescale(
+                frame,
+                crop_margin  = (420, 0, 0, 0),
+                rescale_size = (640, 320)
+            )
 
             # Run inference
 
