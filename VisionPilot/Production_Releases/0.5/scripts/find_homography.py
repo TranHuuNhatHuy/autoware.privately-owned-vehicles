@@ -99,6 +99,10 @@ class BEVHomography:
 
 
     def warp_to_bev(self, cropped_image):
+        """
+        Warp the cropped image to the BEV grid using the computed homography matrix.
+        """
+        
         homography_matrix = self.compute_homography(cropped_image)
         bev_image = cv2.warpPerspective(
             cropped_image, 
