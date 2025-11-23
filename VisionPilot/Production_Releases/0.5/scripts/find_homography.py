@@ -59,10 +59,10 @@ class BEVHomography:
         # - Right top
         # Supported by GIMP to get pixel coordinates
         RAW_SRC_POINTS = [
-            (448  , 1439),  # Left bottom
-            (2108 , 1439),  # Right bottom
-            (1380 , 629 ),  # Left top
-            (1488 , 629 )   # Right top
+            (519  , 1439),  # Left bottom
+            (2071 , 1439),  # Right bottom
+            (1386 , 614 ),  # Left top
+            (1451 , 614 )   # Right top
         ]
 
         # Source points (normalized)
@@ -78,17 +78,28 @@ class BEVHomography:
         # Destination points, for a BEV grid of 640 x 640
         # They are NOT normalized
         self.dst_points = [
-            (159, 639),  # Left bottom
-            (479, 639),  # Right bottom
-            (159, 0  ),  # Left top
-            (479, 0  )   # Right top
+            (219, 639),  # Left bottom
+            (419, 639),  # Right bottom
+            (219, 0  ),  # Left top
+            (419, 0  )   # Right top
         ]
 
         self.bev_size = (640, 640)
 
         # Set homomatrix once here
         self.homography_matrix = self.compute_homography()
-        print("Standard homography matrix computed:")
+        print("Standard homography matrix computed.")
+
+        # Test BEV transform on standard frame
+        bev_image = self.warp_to_bev(self.standard_frame)
+        # Save BEV image for reference
+        cv2.imwrite(
+            os.path.join(
+                os.path.dirname(__file__),
+                "assets/standard_frame_bev.png"
+            ), 
+            bev_image
+        )
 
 
     def compute_homography(self):
@@ -139,8 +150,10 @@ if __name__ == "__main__":
     bev_homography = BEVHomography()
 
     # Use a random frame
-    test_frame_path = ""
+    test_frame_path = "ADD YOUR TEST FRAME PATH HERE"
     test_frame_image = cv2.imread(test_frame_path)[420 : , :]
+    # Save test frame cropped for reference
+    cv2.imwrite("./assets/test_frame_cropped.png", test_frame_image)
     bev_image = bev_homography.warp_to_bev(test_frame_image)
 
     # Save or display the BEV image as needed
