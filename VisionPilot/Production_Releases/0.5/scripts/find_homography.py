@@ -40,4 +40,11 @@ class BEVHomography:
             (1488 , 1049)   # Right top
         ]
 
+        # Source points (normalized)
+        h, w = self.standard_frame.shape[:2]
+        self.src_points = [
+            (x / w, y / h) 
+            for x, y in RAW_SRC_POINTS
+        ]
+
         
