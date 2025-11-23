@@ -20,6 +20,10 @@ This output BEV grid that can be used for lane detection and other applications.
 
 class BEVHomography:
     def __init__(self):
+        """
+        Initialize the BEVHomography class by loading the standard frame and defining
+        source and destination points.
+        """
 
         # Load standard frame image
         self.standard_frame = cv2.imread(
@@ -43,9 +47,12 @@ class BEVHomography:
         ]
 
         # Source points (normalized)
-        h, w = self.standard_frame.shape[:2]
+        self.raw_h, self.raw_w = self.standard_frame.shape[:2]
         self.src_points = [
-            (x / w, y / h) 
+            (
+                x / self.raw_w, 
+                y / self.raw_h
+            ) 
             for x, y in RAW_SRC_POINTS
         ]
 
@@ -59,6 +66,9 @@ class BEVHomography:
         ]
 
     def compute_homography(self, cropped_image):
+        """
+        Compute the homography matrix from the cropped image to the BEV grid.
+        """
         h, w = cropped_image.shape[:2]
 
         # Convert normalized source points to pixel coordinates
