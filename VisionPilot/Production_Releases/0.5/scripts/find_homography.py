@@ -19,6 +19,7 @@ This output BEV grid that can be used for lane detection and other applications.
 
 
 class BEVHomography:
+
     def __init__(self):
         """
         Initialize the BEVHomography class by loading the standard frame and defining
@@ -70,13 +71,22 @@ class BEVHomography:
             (479, 0)     # right top
         ]
 
+        self.bev_size = (640, 640)
+
+
     def compute_homography(self, cropped_image):
         """
         Compute the homography matrix from the cropped image to the BEV grid.
         """
 
         # Convert normalized source points to pixel coordinates
-        src_pts_pixel = [(int(x * w), int(y * h)) for x, y in self.src_points]
+        src_pts_pixel = [
+            (
+                int(x * self.raw_w), 
+                int(y * self.raw_h)
+            ) 
+            for x, y in self.src_points
+        ]
 
         # Convert to numpy arrays
         src_pts_np = cv2.convertPointsToHomogeneous(np.array(src_pts_pixel)).reshape(-1, 2)
@@ -87,27 +97,15 @@ class BEVHomography:
 
         return homography_matrix
 
+
     def warp_to_bev(self, cropped_image):
         homography_matrix = self.compute_homography(cropped_image)
-        bev_image = cv2.warpPerspective(cropped_image, homography_matrix, (640, 640))
+        bev_image = cv2.warpPerspective(
+            cropped_image, 
+            homography_matrix, 
+            self.bev_size
+        )
+
         return bev_image
 
 
-# INPUT : cropped-only image (2880 x 1440)
-
-# 1. Read raw image (2880 x 1860)
-
-# 2. Crop raw image (2880 x 1440)
-
-# 3. Find source points and destination points. Basically I can put a single perfect frame here and manually select the points.
-
-# 4. Define manually 4 source points by picking the best frame where car is perfectly straight (so egoleft/right make perfect trapezoid)
-# Four source points will be in the order: left bottom, right bottom, left top, right top
-# Must be normalized coords (0, 1)
-
-# 5. Set destination points
-# From a BEV grid of 640 x 640
-# Four destination points will be in the order: left bottom (159, 639), right bottom (479, 639), left top (159, 0), right top (479, 0)
-# They are NOT normalized
-
-# OUTPUT : BEV grid with straight lane markings (not picture, just the mask itself)
