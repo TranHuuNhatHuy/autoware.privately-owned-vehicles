@@ -33,6 +33,7 @@ class BEVHomography:
         # Crop upper part of the image to get 2880 x 1440
         CROPPED_H = 1860 - 1440
         self.standard_frame = self.standard_frame[CROPPED_H : , :]
+        print(f"Standard frame cropped shape: {self.standard_frame.shape}")
 
         # MANUALLY DEFINED SOURCE POINTS
         # Define manually 4 source points by picking the best frame where car 
@@ -44,10 +45,10 @@ class BEVHomography:
         # - Right top
         # Supported by GIMP to get pixel coordinates
         RAW_SRC_POINTS = [
-            (448  , 1859),  # Left bottom
-            (2108 , 1859),  # Right bottom
-            (1380 , 1049),  # Left top
-            (1488 , 1049)   # Right top
+            (448  , 1439),  # Left bottom
+            (2108 , 1439),  # Right bottom
+            (1380 , 629 ),  # Left top
+            (1488 , 629 )   # Right top
         ]
 
         # Source points (normalized)
@@ -73,8 +74,6 @@ class BEVHomography:
         """
         Compute the homography matrix from the cropped image to the BEV grid.
         """
-
-        h, w = cropped_image.shape[:2]
 
         # Convert normalized source points to pixel coordinates
         src_pts_pixel = [(int(x * w), int(y * h)) for x, y in self.src_points]
