@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from BEVHomography import BEVHomography
+
 """
 
 VisionPilot 0.5 first release
@@ -42,6 +44,9 @@ def main():
 
     video_filepath = "/mnt/Storage/Daihatsu/video_frames.avi"
 
+    BEVHomography = BEVHomography()
+    homomatrix    = BEVHomography.homography_matrix
+
     # Read homography (should be computed once with findHomography)
     
     cap = cv2.VideoCapture(video_filepath)
@@ -56,12 +61,7 @@ def main():
             if not ret:
                 break
 
-            cv2.imshow("Frame", frame)
-            key = cv2.waitKey(int(1000 / fps)) & 0xFF
-
-            # Quit on Q or ESC
-            if ((key == ord("q")) or (key == 27)):
-                break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Crop: 2880 × 1860 ---> 2880 x 1440
 
@@ -80,6 +80,13 @@ def main():
             # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
 
             # Show BEV vis with the curve parameters and sliding windows and basically everything that helps us debug
+
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(int(1000 / fps)) & 0xFF
+
+            # Quit on Q or ESC
+            if ((key == ord("q")) or (key == 27)):
+                break
 
     except KeyboardInterrupt:
         pass

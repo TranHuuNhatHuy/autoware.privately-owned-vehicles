@@ -90,16 +90,16 @@ class BEVHomography:
         self.homography_matrix = self.compute_homography()
         print("Standard homography matrix computed.")
 
-        # Test BEV transform on standard frame
-        bev_image = self.warp_to_bev(self.standard_frame)
-        # Save BEV image for reference
-        cv2.imwrite(
-            os.path.join(
-                os.path.dirname(__file__),
-                "assets/standard_frame_bev.png"
-            ), 
-            bev_image
-        )
+        # # Test BEV transform on standard frame
+        # bev_image = self.warp_to_bev(self.standard_frame)
+        # # Save BEV image for reference
+        # cv2.imwrite(
+        #     os.path.join(
+        #         os.path.dirname(__file__),
+        #         "assets/standard_frame_bev.png"
+        #     ), 
+        #     bev_image
+        # )
 
 
     def compute_homography(self):
