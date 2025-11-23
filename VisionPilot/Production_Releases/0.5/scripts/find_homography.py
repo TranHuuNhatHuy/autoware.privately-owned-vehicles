@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 
@@ -27,14 +28,26 @@ class BEVHomography:
         """
 
         # Load standard frame image
-        self.standard_frame = cv2.imread(
-            "./assets/standard_frame.jpg"
+        standard_frame_path = os.path.join(
+            os.path.dirname(__file__),
+            "assets/standard_frame.png"
         )
+        self.standard_frame = cv2.imread(standard_frame_path)
+        if (self.standard_frame is None):
+            raise FileNotFoundError(f"Could not read standard frame in {standard_frame_path}")
 
         # Crop upper part of the image to get 2880 x 1440
         CROPPED_H = 1860 - 1440
         self.standard_frame = self.standard_frame[CROPPED_H : , :]
         print(f"Standard frame cropped shape: {self.standard_frame.shape}")
+        # Save cropped standard frame for reference
+        cv2.imwrite(
+            os.path.join(
+                os.path.dirname(__file__),
+                "assets/standard_frame_cropped.png"
+            ), 
+            self.standard_frame
+        )
 
         # MANUALLY DEFINED SOURCE POINTS
         # Define manually 4 source points by picking the best frame where car 
@@ -65,51 +78,70 @@ class BEVHomography:
         # Destination points, for a BEV grid of 640 x 640
         # They are NOT normalized
         self.dst_points = [
-            (159, 639),  # left bottom
-            (479, 639),  # right bottom
-            (159, 0),    # left top
-            (479, 0)     # right top
+            (159, 639),  # Left bottom
+            (479, 639),  # Right bottom
+            (159, 0  ),  # Left top
+            (479, 0  )   # Right top
         ]
 
         self.bev_size = (640, 640)
 
+        # Set homomatrix once here
+        self.homography_matrix = self.compute_homography()
+        print("Standard homography matrix computed:")
 
-    def compute_homography(self, cropped_image):
+
+    def compute_homography(self):
         """
-        Compute the homography matrix from the cropped image to the BEV grid.
+        Compute the homography matrix from the standard frame to the BEV grid.
         """
 
         # Convert normalized source points to pixel coordinates
-        src_pts_pixel = [
-            (
-                int(x * self.raw_w), 
-                int(y * self.raw_h)
-            ) 
-            for x, y in self.src_points
-        ]
+        src_pts_pixel = np.array(
+            [
+                (
+                    int(x * self.raw_w), 
+                    int(y * self.raw_h)
+                ) 
+                for x, y in self.src_points
+            ],
+            dtype = np.float32
+        )
 
-        # Convert to numpy arrays
-        src_pts_np = cv2.convertPointsToHomogeneous(np.array(src_pts_pixel)).reshape(-1, 2)
-        dst_pts_np = cv2.convertPointsToHomogeneous(np.array(self.dst_points)).reshape(-1, 2)
+        dst_pts_np = np.array(
+            self.dst_points, 
+            dtype = np.float32
+        )
 
         # Compute homography matrix
-        homography_matrix, _ = cv2.findHomography(src_pts_np, dst_pts_np)
+        H, _ = cv2.findHomography(src_pts_pixel, dst_pts_np)
 
-        return homography_matrix
+        return H
 
 
-    def warp_to_bev(self, cropped_image):
+    def warp_to_bev(self, image):
         """
-        Warp the cropped image to the BEV grid using the computed homography matrix.
+        Warp an image to the BEV grid using the computed homography matrix.
         """
-        
-        homography_matrix = self.compute_homography(cropped_image)
+
         bev_image = cv2.warpPerspective(
-            cropped_image, 
-            homography_matrix, 
+            image, 
+            self.homography_matrix, 
             self.bev_size
         )
 
         return bev_image
 
 
+# Just for testing
+if __name__ == "__main__":
+
+    bev_homography = BEVHomography()
+
+    # Use a random frame
+    test_frame_path = ""
+    test_frame_image = cv2.imread(test_frame_path)[420 : , :]
+    bev_image = bev_homography.warp_to_bev(test_frame_image)
+
+    # Save or display the BEV image as needed
+    cv2.imwrite("./assets/test_bev_image.png", bev_image)
