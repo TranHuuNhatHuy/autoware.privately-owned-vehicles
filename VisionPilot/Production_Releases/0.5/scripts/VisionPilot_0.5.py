@@ -1,7 +1,9 @@
+import os
 import cv2
 import numpy as np
 
 from BEVHomography import BEVHomography
+from model_components.auto_steer_network import AutoSteerNetwork
 
 """
 
@@ -52,6 +54,15 @@ def main():
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video FPS: {fps}")
 
+    # Prep inference
+    model_checkpoint_path = os.path.join(
+        os.path.dirname(__file__),
+        "assets/Best_EgoLanes.pth"
+    )
+    model = AutoSteerNetwork(
+        checkpoint_path = model_checkpoint_path
+    )
+
     try:
         while cap.isOpened():
             
@@ -70,6 +81,7 @@ def main():
             )
 
             # Run inference
+
 
             # Show raw binary mask (must be normalized so we can use homography)
 
