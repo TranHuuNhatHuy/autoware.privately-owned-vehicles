@@ -235,8 +235,8 @@ def sliding_window_multi(binary_channel: np.ndarray):
 
 
 def get_pixel_params(
-        left_fit  : tuple[np.ndarray | None, np.ndarray | None, np.ndarray | None], 
-        right_fit : tuple[np.ndarray | None, np.ndarray | None, np.ndarray | None]
+        left_fit, 
+        right_fit
 ):
     """
     Calculates curvature and offset in PIXELS.
@@ -289,6 +289,7 @@ def get_pixel_params(
 
 # ========================== MAIN PROCESSING LOOP ========================== #
 
+
 def main():
 
     # # Japanese highway tends to have lane width 3.5 meters
@@ -300,7 +301,6 @@ def main():
 
     # Read homography (should be computed once with findHomography)
     bev_homography = BEVHomography()
-    homomatrix     = bev_homography.homography_matrix
     
     # Prep video
     video_filepath = "/mnt/Storage/Daihatsu/video_frames_trimmed.avi"
@@ -348,9 +348,14 @@ def main():
             # Convert raw binary mask to BEV using homography, all 3 channels
             bev_mask = bev_homography.warp_to_bev(
                 binary_mask
-            )
+            ) * 255.0
 
-            # Process BEV to extract lane points
+            # LANE DETECTION IN BEV SPACE
+
+            # Split channels
+            c_egoleft       = bev_mask[:, :, 0]
+            c_egoright      = bev_mask[:, :, 1]
+            c_otherlanes    = bev_mask[:, :, 2]
 
             # Show BEV masks (debugging purpose)
 
@@ -358,7 +363,7 @@ def main():
 
             # Show BEV vis with the curve parameters and sliding windows and basically everything that helps us debug
             
-            cv2.imshow("Frame", (bev_mask * 255.0))
+            cv2.imshow("Frame", bev_mask)
             key = cv2.waitKey(int(1000 / fps)) & 0xFF
 
             # Quit on Q or ESC
