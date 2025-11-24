@@ -357,6 +357,13 @@ def main():
             c_egoright      = bev_mask[:, :, 1]
             c_otherlanes    = bev_mask[:, :, 2]
 
+            # Fit 2 egolines
+            fit_left, lx, ly    = ego_line_match(c_egoleft)
+            fit_right, rx, ry   = ego_line_match(c_egoright)
+
+            # Fit other lines with sliding window
+            fit_others, viz     = sliding_window_multi(c_otherlanes)
+
             # Show BEV masks (debugging purpose)
 
             # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
