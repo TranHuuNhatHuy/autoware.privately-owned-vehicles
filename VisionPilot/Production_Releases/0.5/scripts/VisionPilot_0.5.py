@@ -335,7 +335,7 @@ def draw_lanes(
                 color = color, 
                 thickness=3
             )
-            
+
         except: 
             pass
 
@@ -427,7 +427,36 @@ def main():
 
             # VISUALIZATION
 
-            
+            hud = np.zeros_like(bev_mask)
+
+            # Draw lines
+            if (fit_left is not None):
+                hud = cv2.add(
+                    hud, 
+                    draw_lanes(
+                        hud.shape, 
+                        [fit_left], 
+                        color = (255, 0, 0)
+                    )
+                )
+            if (fit_right is not None):
+                hud = cv2.add(
+                    hud, 
+                    draw_lanes(
+                        hud.shape, 
+                        [fit_right], 
+                        color = (0, 255, 0)
+                    )
+                )
+            if (fit_others):
+                hud = cv2.add(
+                    hud, 
+                    draw_lanes(
+                        hud.shape, 
+                        fit_others, 
+                        color = (0, 0, 255)
+                    )
+                )
             
             cv2.imshow("Frame", bev_mask)
             key = cv2.waitKey(int(1000 / fps)) & 0xFF
