@@ -364,6 +364,12 @@ def main():
             # Fit other lines with sliding window
             fit_others, viz     = sliding_window_multi(c_otherlanes)
 
+            # Get curve params
+            (left_curve, right_curve), offset_px = get_pixel_params(
+                fit_left, 
+                fit_right
+            )
+
             # Show BEV masks (debugging purpose)
 
             # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
