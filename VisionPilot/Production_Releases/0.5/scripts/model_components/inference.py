@@ -56,14 +56,14 @@ class AutoSteerNetworkInfer():
         prediction = torch.squeeze(prediction, dim = 0)
 
         # Channel swapping
-        prediction = torch.permute(prediction, (2, 1 ,0))
+        # prediction = torch.permute(prediction, (2, 1 ,0))
 
-        # Thresholding
+        # Thresholding across 3 channels
         prediction[prediction >  0.0] = 1.0
         prediction[prediction <= 0.0] = 0.0
 
         # Get output
-        binary_seg = prediction.cpu().detach().numpy()
+        binary_seg = prediction.squeeze(0).cpu().detach().numpy()
 
         return binary_seg
 

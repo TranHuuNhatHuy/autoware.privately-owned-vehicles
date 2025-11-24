@@ -78,10 +78,10 @@ class BEVHomography:
         # Destination points, for a BEV grid of 640 x 640
         # They are NOT normalized
         self.dst_points = [
-            (219, 639),  # Left bottom
-            (419, 639),  # Right bottom
-            (219, 0  ),  # Left top
-            (419, 0  )   # Right top
+            (279, 639),  # Left bottom
+            (359, 639),  # Right bottom
+            (279, 0  ),  # Left top
+            (359, 0  )   # Right top
         ]
 
         self.bev_size = (640, 640)
