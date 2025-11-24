@@ -457,12 +457,50 @@ def main():
                         color = (0, 0, 255)
                     )
                 )
-            
-            cv2.imshow("Frame", bev_mask)
-            key = cv2.waitKey(int(1000 / fps)) & 0xFF
 
-            # Quit on Q or ESC
-            if ((key == ord("q")) or (key == 27)):
+            # Overlay hud on bev_mask
+            final_bev = cv2.addWeighted(
+                viz, 0.5, 
+                hud, 1.0, 
+                0
+            )
+            
+            # Some info
+            avg_rad = (
+                (left_curve + right_curve) / 2 
+                if (left_curve > 0 and right_curve > 0) 
+                else (left_curve + right_curve)
+            )
+            
+            info_text_offset    = f"Offset: {offset_px:.1f} px"
+            info_text_rad       = f"Radius: {avg_rad:.0f} px"
+            
+            cv2.putText(
+                final_bev, 
+                info_text_offset, 
+                (20, 50), 
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                0.8, 
+                (255, 255, 255), 
+                2
+            )
+            cv2.putText(
+                final_bev, 
+                info_text_rad, 
+                (20, 90), 
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                0.8, 
+                (255, 255, 255), 
+                2
+            )
+
+            cv2.imshow("BEV with results (pixel-based only)", final_bev)
+            
+            key = cv2.waitKey(int(1000 / fps)) & 0xFF
+            if (
+                (key == ord("q")) or 
+                (key == 27)
+            ): 
                 break
 
     except KeyboardInterrupt:
