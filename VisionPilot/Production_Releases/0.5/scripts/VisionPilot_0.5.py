@@ -284,7 +284,62 @@ def get_pixel_params(
         # Positive = Car is to the right of center (Need to steer Left)
         offset_px = lane_center - img_center
         
-    return (left_curverad, right_curverad), offset_px
+    return (left_curve_rad, right_curve_rad), offset_px
+
+
+def draw_lanes(
+        canvas_shape: tuple[int, int, int],
+        fits : list[np.ndarray | None], 
+        color = (255, 255, 255)
+):
+    """
+    Draw lane lines on a blank canvas.
+    
+    Args:
+        canvas_shape (tuple[int, int, int]): Shape of the canvas (height, width, channels).
+        fits (list[np.ndarray | None]): List of polynomial coefficients [A, B, C] for each lane line.
+        color (tuple[int, int, int]): Color to draw the lanes.
+
+    Returns:
+        np.ndarray: Canvas with drawn lane lines.
+    """
+    
+    canvas = np.zeros(
+        canvas_shape, dtype = np.uint8
+    )
+    plot_y = np.linspace(
+        0, canvas_shape[0] - 1, 
+        canvas_shape[0]
+    )
+    for fit in fits:
+
+        if (fit is None): 
+            continue
+
+        try:
+            fit_x = fit[0]*plot_y**2 + fit[1]*plot_y + fit[2]
+            
+            # Sanity check to prevent drawing wild lines outside frame
+            if (
+                (np.any(fit_x < -canvas_shape[1])) or 
+                (np.any(fit_x > canvas_shape[1]*2))
+            ):
+                continue
+
+            pts = np.array([np.transpose(np.vstack([fit_x, plot_y]))])
+            pts = pts.astype(np.int32)
+            cv2.polylines(
+                canvas, 
+                [pts], 
+                isClosed = False, 
+                color = color, 
+                thickness=3
+            )
+            
+        except: 
+            pass
+
+    return canvas
 
 
 # ========================== MAIN PROCESSING LOOP ========================== #
@@ -370,11 +425,9 @@ def main():
                 fit_right
             )
 
-            # Show BEV masks (debugging purpose)
+            # VISUALIZATION
 
-            # Process lane points to get curve parameters of the road (lane offset, yaw angle, curvature)
-
-            # Show BEV vis with the curve parameters and sliding windows and basically everything that helps us debug
+            
             
             cv2.imshow("Frame", bev_mask)
             key = cv2.waitKey(int(1000 / fps)) & 0xFF
