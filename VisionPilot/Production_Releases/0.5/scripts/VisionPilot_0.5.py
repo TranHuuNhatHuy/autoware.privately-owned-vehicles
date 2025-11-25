@@ -387,118 +387,119 @@ def main():
                 crop_margin  = (420, 0, 0, 0),
                 rescale_size = (640, 320)
             )
+            bev_view = bev_homography.warp_to_bev(frame)
 
-            # Run inference
-            prediction = model.inference(frame)
+            # # Run inference
+            # prediction = model.inference(frame)
 
-            # Get raw binary mask (must be [0 - 1] normalized so we can use homography)
-            # Should be same size as cropped frame (2880 x 1440)
-            # YOU DON'T HAVE TO UPSCALE THE BIN MASK
-            binary_mask = np.moveaxis(
-                upscale_prediction(
-                    prediction,
-                    target_size = (FRAME_W, FRAME_H)
-                ),
-                0, -1
-            )
+            # # Get raw binary mask (must be [0 - 1] normalized so we can use homography)
+            # # Should be same size as cropped frame (2880 x 1440)
+            # # YOU DON'T HAVE TO UPSCALE THE BIN MASK
+            # binary_mask = np.moveaxis(
+            #     upscale_prediction(
+            #         prediction,
+            #         target_size = (FRAME_W, FRAME_H)
+            #     ),
+            #     0, -1
+            # )
 
-            # Convert raw binary mask to BEV using homography, all 3 channels
-            bev_mask = bev_homography.warp_to_bev(
-                binary_mask
-            ) * 255.0
-            bev_mask = bev_mask.astype(np.uint8)
+            # # Convert raw binary mask to BEV using homography, all 3 channels
+            # bev_mask = bev_homography.warp_to_bev(
+            #     binary_mask
+            # ) * 255.0
+            # bev_mask = bev_mask.astype(np.uint8)
 
-            # LANE DETECTION IN BEV SPACE
+            # # LANE DETECTION IN BEV SPACE
 
-            # Split channels
-            c_egoleft       = bev_mask[:, :, 0]
-            c_egoright      = bev_mask[:, :, 1]
-            c_otherlanes    = bev_mask[:, :, 2]
+            # # Split channels
+            # c_egoleft       = bev_mask[:, :, 0]
+            # c_egoright      = bev_mask[:, :, 1]
+            # c_otherlanes    = bev_mask[:, :, 2]
 
-            # Fit 2 egolines
-            fit_left, lx, ly    = ego_line_match(c_egoleft)
-            fit_right, rx, ry   = ego_line_match(c_egoright)
+            # # Fit 2 egolines
+            # fit_left, lx, ly    = ego_line_match(c_egoleft)
+            # fit_right, rx, ry   = ego_line_match(c_egoright)
 
-            # Fit other lines with sliding window
-            fit_others, viz     = sliding_window_multi(c_otherlanes)
+            # # Fit other lines with sliding window
+            # fit_others, viz     = sliding_window_multi(c_otherlanes)
 
-            # Get curve params
-            (left_curve, right_curve), offset_px = get_pixel_params(
-                fit_left, 
-                fit_right
-            )
+            # # Get curve params
+            # (left_curve, right_curve), offset_px = get_pixel_params(
+            #     fit_left, 
+            #     fit_right
+            # )
 
-            # VISUALIZATION
+            # # VISUALIZATION
 
-            hud = np.zeros_like(bev_mask)
+            # hud = np.zeros_like(bev_mask)
 
-            # Draw lines
-            if (fit_left is not None):
-                hud = cv2.add(
-                    hud,
-                    draw_lanes(
-                        hud.shape, 
-                        [fit_left], 
-                        color = (255, 0, 0)
-                    )
-                )
-            if (fit_right is not None):
-                hud = cv2.add(
-                    hud, 
-                    draw_lanes(
-                        hud.shape, 
-                        [fit_right], 
-                        color = (0, 255, 0)
-                    )
-                )
-            if (fit_others):
-                hud = cv2.add(
-                    hud, 
-                    draw_lanes(
-                        hud.shape, 
-                        fit_others, 
-                        color = (0, 0, 255)
-                    )
-                )
+            # # Draw lines
+            # if (fit_left is not None):
+            #     hud = cv2.add(
+            #         hud,
+            #         draw_lanes(
+            #             hud.shape, 
+            #             [fit_left], 
+            #             color = (255, 0, 0)
+            #         )
+            #     )
+            # if (fit_right is not None):
+            #     hud = cv2.add(
+            #         hud, 
+            #         draw_lanes(
+            #             hud.shape, 
+            #             [fit_right], 
+            #             color = (0, 255, 0)
+            #         )
+            #     )
+            # if (fit_others):
+            #     hud = cv2.add(
+            #         hud, 
+            #         draw_lanes(
+            #             hud.shape, 
+            #             fit_others, 
+            #             color = (0, 0, 255)
+            #         )
+            #     )
 
-            # Overlay hud on bev_mask
-            final_bev = cv2.addWeighted(
-                viz, 0.5, 
-                hud, 1.0, 
-                0
-            )
+            # # Overlay hud on bev_mask
+            # final_bev = cv2.addWeighted(
+            #     viz, 0.5, 
+            #     hud, 1.0, 
+            #     0
+            # )
             
-            # Some info
-            avg_rad = (
-                (left_curve + right_curve) / 2 
-                if (left_curve > 0 and right_curve > 0) 
-                else (left_curve + right_curve)
-            )
+            # # Some info
+            # avg_rad = (
+            #     (left_curve + right_curve) / 2 
+            #     if (left_curve > 0 and right_curve > 0) 
+            #     else (left_curve + right_curve)
+            # )
             
-            info_text_offset    = f"Offset: {offset_px:.1f} px"
-            info_text_rad       = f"Radius: {avg_rad:.0f} px"
+            # info_text_offset    = f"Offset: {offset_px:.1f} px"
+            # info_text_rad       = f"Radius: {avg_rad:.0f} px"
             
-            cv2.putText(
-                final_bev, 
-                info_text_offset, 
-                (20, 50), 
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.8, 
-                (255, 255, 255), 
-                2
-            )
-            cv2.putText(
-                final_bev, 
-                info_text_rad, 
-                (20, 90), 
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.8, 
-                (255, 255, 255), 
-                2
-            )
+            # cv2.putText(
+            #     final_bev, 
+            #     info_text_offset, 
+            #     (20, 50), 
+            #     cv2.FONT_HERSHEY_SIMPLEX, 
+            #     0.8, 
+            #     (255, 255, 255), 
+            #     2
+            # )
+            # cv2.putText(
+            #     final_bev, 
+            #     info_text_rad, 
+            #     (20, 90), 
+            #     cv2.FONT_HERSHEY_SIMPLEX, 
+            #     0.8, 
+            #     (255, 255, 255), 
+            #     2
+            # )
 
-            cv2.imshow("BEV with results (pixel-based only)", final_bev)
-            
+            cv2.imshow("BEV with results (pixel-based only)", bev_view)
+
             key = cv2.waitKey(int(1000 / fps)) & 0xFF
             if (
                 (key == ord("q")) or 

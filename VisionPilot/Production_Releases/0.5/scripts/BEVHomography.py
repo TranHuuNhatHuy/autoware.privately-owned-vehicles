@@ -65,13 +65,10 @@ class BEVHomography:
             (1451 , 614 )   # Right top
         ]
 
-        # Source points (normalized)
+        # Source points
         self.raw_h, self.raw_w = self.standard_frame.shape[:2]
         self.src_points = [
-            (
-                x / self.raw_w, 
-                y / self.raw_h
-            ) 
+            (x / self.raw_w, y / self.raw_h) 
             for x, y in RAW_SRC_POINTS
         ]
 
@@ -90,16 +87,16 @@ class BEVHomography:
         self.homography_matrix = self.compute_homography()
         print("Standard homography matrix computed.")
 
-        # # Test BEV transform on standard frame
-        # bev_image = self.warp_to_bev(self.standard_frame)
-        # # Save BEV image for reference
-        # cv2.imwrite(
-        #     os.path.join(
-        #         os.path.dirname(__file__),
-        #         "assets/standard_frame_bev.png"
-        #     ), 
-        #     bev_image
-        # )
+        # Test BEV transform on standard frame
+        bev_image = self.warp_to_bev(self.standard_frame)
+        # Save BEV image for reference
+        cv2.imwrite(
+            os.path.join(
+                os.path.dirname(__file__),
+                "assets/standard_frame_bev.png"
+            ), 
+            bev_image
+        )
 
 
     def compute_homography(self):
@@ -110,10 +107,7 @@ class BEVHomography:
         # Convert normalized source points to pixel coordinates
         src_pts_pixel = np.array(
             [
-                (
-                    int(x * self.raw_w), 
-                    int(y * self.raw_h)
-                ) 
+                (int(x * 640), int(y * 320))
                 for x, y in self.src_points
             ],
             dtype = np.float32
@@ -126,6 +120,7 @@ class BEVHomography:
 
         # Compute homography matrix
         H, _ = cv2.findHomography(src_pts_pixel, dst_pts_np)
+        print(H)
 
         return H
 
@@ -150,7 +145,7 @@ if __name__ == "__main__":
     bev_homography = BEVHomography()
 
     # Use a random frame
-    test_frame_path = "ADD YOUR TEST FRAME PATH HERE"
+    test_frame_path = "/mnt/Storage/Daihatsu/video_frames_trimmed/00-01-17-800.png"
     test_frame_image = cv2.imread(test_frame_path)[420 : , :]
     # Save test frame cropped for reference
     cv2.imwrite("./assets/test_frame_cropped.png", test_frame_image)
