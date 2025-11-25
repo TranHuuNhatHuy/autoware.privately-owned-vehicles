@@ -172,13 +172,14 @@ def sliding_window_multi(binary_channel: np.ndarray):
     )
     
     peaks = []
-    threshold = 20
+    threshold = 50
+    min_peak_dist = 80
     # Find starting peaks
     for i in range(len(histogram)):
         if (histogram[i] > threshold):
             if (
                 (len(peaks) == 0) or 
-                (abs(i - peaks[-1]) > 50)
+                (abs(i - peaks[-1]) > min_peak_dist)
             ): 
                 peaks.append(i)
 
@@ -255,8 +256,8 @@ def get_pixel_params(
 
     y_eval = BEV_H      # Evaluate at the bottom of the BEV image
     
-    left_curverad = 0
-    right_curverad = 0
+    left_curve_rad = 0
+    right_curve_rad = 0
     offset_px = 0
     
     # Radius of Curvature: R = ((1 + (2Ay + B)^2)^1.5) / |2A|
@@ -288,8 +289,8 @@ def get_pixel_params(
 
 
 def draw_lanes(
-        canvas_shape: tuple[int, int, int],
-        fits : list[np.ndarray | None], 
+        canvas_shape,
+        fits, 
         color = (255, 255, 255)
 ):
     """
@@ -392,6 +393,7 @@ def main():
 
             # Get raw binary mask (must be [0 - 1] normalized so we can use homography)
             # Should be same size as cropped frame (2880 x 1440)
+            # YOU DON'T HAVE TO UPSCALE THE BIN MASK
             binary_mask = np.moveaxis(
                 upscale_prediction(
                     prediction,
@@ -404,6 +406,7 @@ def main():
             bev_mask = bev_homography.warp_to_bev(
                 binary_mask
             ) * 255.0
+            bev_mask = bev_mask.astype(np.uint8)
 
             # LANE DETECTION IN BEV SPACE
 
@@ -432,7 +435,7 @@ def main():
             # Draw lines
             if (fit_left is not None):
                 hud = cv2.add(
-                    hud, 
+                    hud,
                     draw_lanes(
                         hud.shape, 
                         [fit_left], 
