@@ -68,6 +68,9 @@ just run_carla_domainseg
 
 # Scene3D
 just run_carla_scene3d
+
+# Egolanes
+just run_carla_egolanes
 ```
 
 ### Cleanup

@@ -107,6 +107,8 @@ just run_domainseg
 just run_scene3d
 # AutoSpeed
 just run_autospeed
+# Egolanes
+just run_egolanes
 ```
 
 - Clean the project
