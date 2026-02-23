@@ -16,6 +16,7 @@
 #include "onnx_runtime_backend.hpp"
 #include "tensorrt_backend.hpp"
 #include "masks_visualization_engine.hpp"
+#include "masks_visualization_kernels.hpp"
 #include "depth_visualization_engine.hpp"
 #include "fps_timer.hpp"
 
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     app.add_option("-g,--gpu-id", gpu_id, "GPU ID to use for CUDA backend")
         ->default_val(DEFAULT_GPU_ID);
     std::string model_type = "scene";
-    app.add_option("-m,--model-type", model_type, "Type of the model (segmentation or domain)")
+    app.add_option("-m,--model-type", model_type, "Type of the model (segmentation, domain, or egolanes)")
         ->default_val("segmentation");
     CLI11_PARSE(app, argc, argv);
 
@@ -284,18 +285,25 @@ int main(int argc, char* argv[]) {
                 cv::Mat resized_depth;
                 cv::resize(depth_map, resized_depth, frame.size(), 0, 0, cv::INTER_LINEAR);
               
-                std::unique_ptr<autoware_pov::common::DepthVisualizationEngine> viz_engine_ = 
-                    std::make_unique<autoware_pov::common::DepthVisualizationEngine>();
-                final_frame = viz_engine_->visualize(resized_depth);
+                //// Only send out the depth
+                final_frame = resized_depth;
+                //// Debug: Show the blended result directly
+                // std::unique_ptr<autoware_pov::common::DepthVisualizationEngine> viz_engine_ = 
+                //     std::make_unique<autoware_pov::common::DepthVisualizationEngine>();
+                // final_frame = viz_engine_->visualize(resized_depth);
+                
             } else if (model_type == "segmentation" || model_type == "egolanes") {
                 cv::Mat mask;
  
 #ifdef CUDA_FOUND
+                bool cuda_success = false;
                 // Try CUDA acceleration first
-                bool cuda_success = CudaVisualizationKernels::createMaskFromTensorCUDA(
-                  tensor_data, tensor_shape, mask
-                );
-    
+                if (model_type != "egolanes") {
+                    cuda_success = autoware_pov::common::MasksVisualizationKernels::createMaskFromTensorCUDA(
+                        tensor_data, tensor_shape, mask
+                    );
+                }
+
                 if (!cuda_success)
 #endif
                 {

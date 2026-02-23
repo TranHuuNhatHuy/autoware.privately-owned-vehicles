@@ -297,10 +297,14 @@ int main(int argc, char* argv[]) {
                 cv::Mat mask;
  
 #ifdef CUDA_FOUND
+                bool cuda_success = false;
                 // Try CUDA acceleration first
-                bool cuda_success = autoware_pov::common::MasksVisualizationKernels::createMaskFromTensorCUDA(
-                  tensor_data, tensor_shape, mask
-                );
+                if (model_type != "egolanes") {
+                    cuda_success = autoware_pov::common::MasksVisualizationKernels::createMaskFromTensorCUDA(
+                        tensor_data, tensor_shape, mask
+                    );
+                }
+
                 if (!cuda_success)
 #endif
                 {
