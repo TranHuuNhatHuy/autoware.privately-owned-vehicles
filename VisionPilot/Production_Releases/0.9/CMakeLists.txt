@@ -295,6 +295,14 @@ target_link_libraries(longitudinal_tracking
     yaml-cpp
 )
 
+# Speed planning module (RSS safe-distance + ACC/FCW/AEB policy)
+add_library(speed_planning
+    src/speed_planning/speed_planning.cpp
+)
+target_include_directories(speed_planning PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+)
+
 # Config reader module (properties file format - no dependencies)
 add_library(config_reader
     src/config/config_reader.cpp
@@ -320,6 +328,7 @@ set(VISIONPILOT_LIBS
     visionpilot_lane_filtering
     visionpilot_lane_tracking
     longitudinal_tracking
+    speed_planning
     camera_utils
     path_planning
     steering_control
