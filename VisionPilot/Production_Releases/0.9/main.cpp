@@ -39,6 +39,7 @@ using AutoSteerEngine =
 // Longitudinal tracking includes
 #include "inference/autospeed/onnxruntime_engine.hpp"
 #include "tracking/object_finder.hpp"
+#include "speed_planning/speed_planning.hpp"
 
 #ifdef ENABLE_RERUN
 #include "rerun/rerun_logger.hpp"
@@ -54,6 +55,7 @@ using AutoSteerEngine =
 #include <iostream>
 #include <iomanip>
  #include <fstream>
+ #include <sstream>
  #include <cmath>
  #include <limits>
  #ifndef M_PI
@@ -70,6 +72,7 @@ using namespace autoware_pov::vision::path_planning;
 using namespace autoware_pov::vision::steering_control;
 using namespace autoware_pov::vision::tracking;
 using namespace autoware_pov::vision::autospeed;
+using namespace autoware_pov::vision::speed_planning;
 using namespace autoware_pov::drivers;
 using namespace autoware_pov::config;
 using namespace std::chrono;
@@ -248,6 +251,12 @@ struct LongitudinalResult {
     bool cut_in_detected = false;
     bool kalman_reset = false;
     CanVehicleState vehicle_state;
+
+    // Speed planning outputs
+    double ideal_speed_ms  = 0.0;   // Commanded set-speed from RSS planner (m/s)
+    double safe_distance_m = 0.0;   // Computed RSS d_min (m); 0 when no CIPO
+    bool   fcw_active      = false; // Forward Collision Warning
+    bool   aeb_active      = false; // Automatic Emergency Braking
 };
 
 // Unified result combining lateral and longitudinal for synchronized visualization
@@ -272,7 +281,13 @@ struct UnifiedResult {
     CIPOInfo cipo;
     bool cut_in_detected = false;
     bool kalman_reset = false;
-    
+
+    // Speed planning outputs
+    double ideal_speed_ms  = 0.0;
+    double safe_distance_m = 0.0;
+    bool   fcw_active      = false;
+    bool   aeb_active      = false;
+
     // CAN data
     CanVehicleState vehicle_state;
 };
@@ -642,11 +657,15 @@ void longitudinalInferenceThread(
     PerformanceMetrics& metrics,
     std::atomic<bool>& running,
     float conf_thresh,
-    float iou_thresh
+    float iou_thresh,
+    double ego_speed_ms   // Static placeholder; replace with CAN bus value when available
 )
 {
     int last_frame_number = -1;
-    
+
+    // Construct SpeedPlanner once; state is updated per-frame via setters
+    SpeedPlanner speed_planner(0.0, 100.0, ego_speed_ms, ego_speed_ms, false);
+
     while (running.load()) {
         // Wait for new frame from double buffer
         DoubleFrameBuffer::Frame frame_data = input_buffer.wait_for_new_frame(last_frame_number);
@@ -670,6 +689,27 @@ void longitudinalInferenceThread(
         // 2. Run ObjectFinder tracking and get CIPO
         TrackingResult tracking_result = object_finder.updateAndGetCIPO(detections, frame_data.frame);
 
+        // 3. Run SpeedPlanner with latest CIPO state
+        // ego_speed_ms: static placeholder until CAN bridge supplies real speed
+        // relative_cipo_speed (velocity_ms): Kalman-estimated, positive = closing
+        double ideal_speed_ms  = ego_speed_ms;
+        double safe_distance_m = 0.0;
+        bool   fcw_active      = false;
+        bool   aeb_active      = false;
+
+        {
+            const CIPOInfo& cipo = tracking_result.cipo;
+            speed_planner.setEgoSpeed(ego_speed_ms);
+            speed_planner.setIsCIPOPresent(cipo.exists);
+            if (cipo.exists) {
+                speed_planner.setCIPOState(cipo.velocity_ms, cipo.distance_m);
+                safe_distance_m = speed_planner.calcSafeRSSDistance();
+            }
+            ideal_speed_ms = speed_planner.calcIdealDrivingSpeed();
+            fcw_active     = speed_planner.getFCWState();
+            aeb_active     = speed_planner.getAEBState();
+        }
+
         auto t_inference_end = steady_clock::now();
 
         // Calculate inference latency
@@ -685,7 +725,9 @@ void longitudinalInferenceThread(
                       << "@ " << std::fixed << std::setprecision(1) 
                       << tracking_result.cipo.distance_m << "m, "
                       << tracking_result.cipo.velocity_ms << "m/s";
-            
+
+            std::cout << " FCW: " << speed_planner.getFCWState() << " AEB: " << speed_planner.getAEBState();
+            std::cout << " Ideal Speed: " << ideal_speed_ms << " Safe Distance: " << safe_distance_m;
             if (tracking_result.cut_in_detected) {
                 std::cout << " [CUT-IN DETECTED]";
             }
@@ -697,15 +739,19 @@ void longitudinalInferenceThread(
 
         // Package result
         LongitudinalResult result;
-        result.frame = frame_data.frame.clone();  // Clone for display thread!
+        result.frame           = frame_data.frame.clone();
         result.tracked_objects = tracking_result.tracked_objects;
-        result.cipo = tracking_result.cipo;
-        result.frame_number = frame_data.frame_number;
-        result.capture_time = frame_data.timestamp;
-        result.inference_time = t_inference_end;
+        result.cipo            = tracking_result.cipo;
+        result.frame_number    = frame_data.frame_number;
+        result.capture_time    = frame_data.timestamp;
+        result.inference_time  = t_inference_end;
         result.cut_in_detected = tracking_result.cut_in_detected;
-        result.kalman_reset = tracking_result.kalman_reset;
-        result.vehicle_state = frame_data.vehicle_state;
+        result.kalman_reset    = tracking_result.kalman_reset;
+        result.vehicle_state   = frame_data.vehicle_state;
+        result.ideal_speed_ms  = ideal_speed_ms;
+        result.safe_distance_m = safe_distance_m;
+        result.fcw_active      = fcw_active;
+        result.aeb_active      = aeb_active;
         
         output_queue.push(result);
     }
@@ -760,7 +806,8 @@ void unifiedDisplayThread(
                  << "pathfinder_cte,pathfinder_yaw_error,pathfinder_curvature,"
                  << "pid_steering_raw_deg,pid_steering_filtered_deg,"
                  << "autosteer_angle_deg,autosteer_valid,"
-                 << "cipo_exists,cipo_distance_m,cipo_velocity_ms\n";
+                 << "cipo_exists,cipo_distance_m,cipo_velocity_ms,"
+                 << "safe_distance_m,ideal_speed_ms,fcw_active,aeb_active\n";
         std::cout << "CSV logging enabled: " << csv_log_path << std::endl;
     }
 
@@ -853,13 +900,40 @@ void unifiedDisplayThread(
                 if (lat.lane_departure_warning) {
                     showLaneDepartureWarning(display_frame);
                 }
-                
-                // 5. Add frame number and sync indicator
-                cv::putText(display_frame, "Frame: " + std::to_string(frame_num), 
-                          cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0, 
+
+                // 5. FCW / AEB overlays (longitudinal safety alerts)
+                if (lon.aeb_active) {
+                    cv::putText(display_frame, "!!! AEB ACTIVE !!!",
+                                cv::Point(display_frame.cols / 2 - 220, 120),
+                                cv::FONT_HERSHEY_DUPLEX, 1.4, cv::Scalar(0, 0, 255), 3);
+                } else if (lon.fcw_active) {
+                    cv::putText(display_frame, "! FORWARD COLLISION WARNING !",
+                                cv::Point(display_frame.cols / 2 - 300, 120),
+                                cv::FONT_HERSHEY_DUPLEX, 1.0, cv::Scalar(0, 128, 255), 2);
+                }
+
+                // 6. Ideal speed + RSS distance HUD (top-right area)
+                if (lon.cipo.exists) {
+                    std::string speed_str = "Set: " + 
+                        [&]{ std::ostringstream ss; ss << std::fixed << std::setprecision(1)
+                             << lon.ideal_speed_ms; return ss.str(); }() + " m/s";
+                    std::string rss_str   = "d_safe: " +
+                        [&]{ std::ostringstream ss; ss << std::fixed << std::setprecision(1)
+                             << lon.safe_distance_m << "m"; return ss.str(); }();
+                    cv::putText(display_frame, speed_str,
+                                cv::Point(display_frame.cols - 300, 30),
+                                cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 255), 2);
+                    cv::putText(display_frame, rss_str,
+                                cv::Point(display_frame.cols - 300, 60),
+                                cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(200, 200, 0), 2);
+                }
+
+                // 7. Frame number and sync indicator
+                cv::putText(display_frame, "Frame: " + std::to_string(frame_num),
+                          cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0,
                           cv::Scalar(0, 255, 255), 2);
-                cv::putText(display_frame, "SYNCHRONIZED", 
-                          cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.8, 
+                cv::putText(display_frame, "SYNCHRONIZED",
+                          cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.8,
                           cv::Scalar(0, 255, 0), 2);
                 
                 // ===== DISPLAY =====
@@ -911,7 +985,11 @@ void unifiedDisplayThread(
                              << (lat.autosteer_valid ? 1 : 0) << ","
                              << (lon.cipo.exists ? 1 : 0) << ","
                              << lon.cipo.distance_m << ","
-                             << lon.cipo.velocity_ms << "\n";
+                             << lon.cipo.velocity_ms << ","
+                             << lon.safe_distance_m << ","
+                             << lon.ideal_speed_ms << ","
+                             << (lon.fcw_active ? 1 : 0) << ","
+                             << (lon.aeb_active ? 1 : 0) << "\n";
                 }
                 
                 // ===== METRICS =====
@@ -1747,15 +1825,20 @@ int main(int argc, char** argv)
                             autosteer_engine.get());
 
     // Longitudinal pipeline (reads from shared buffer, parallel execution)
-    std::thread t_longitudinal_inference(longitudinalInferenceThread, 
-                                        std::ref(*autospeed_engine),
-                                        std::ref(*object_finder),
-                                        std::ref(shared_frame_buffer), 
-                                        std::ref(display_queue_long),
-                                        std::ref(metrics), 
-                                        std::ref(running),
-                                        autospeed_conf_thresh,
-                                        autospeed_iou_thresh);
+    // TODO: replace 10.0 with can_interface->getState().speed_kmph (convert to m/s)
+    //       once CAN bus speed is validated.
+    constexpr double kStaticEgoSpeedMs = 10.0;
+
+    std::thread t_longitudinal_inference(longitudinalInferenceThread,
+                                         std::ref(*autospeed_engine),
+                                         std::ref(*object_finder),
+                                         std::ref(shared_frame_buffer),
+                                         std::ref(display_queue_long),
+                                         std::ref(metrics),
+                                         std::ref(running),
+                                         autospeed_conf_thresh,
+                                         autospeed_iou_thresh,
+                                         kStaticEgoSpeedMs);
 
     // Unified display thread (merges lateral + longitudinal visualization)
 #ifdef ENABLE_RERUN
