@@ -1,0 +1,2317 @@
+{
+	"bShowVehicleWidget1": true,
+	"bShowVehicleWidget2": false,
+	"bVehicleWidgetUnitsRPM": false,
+	"bIsVehicleWidgetHighSpeed": true,
+	"segmObjectLabel": "Vehicles",
+	"bShowPhysBodyKinematic": false,
+	"bRecordDataset": true,
+	"bPossesWhenScarioPlay": true,
+	"vehicleCategoriesSorted": [],
+	"vehicleComponentsSortedNames": [],
+	"saveAddress":
+	{
+		"source": "JsonLocal",
+		"location": "SodaSportCarCamera"
+	},
+	"bCanBeDamaged": true,
+	"__class__": "/Script/Engine.BlueprintGeneratedClass'/SodaSim/SodaVehicles/SodaSampleVeh01/SodaSampleVeh01.SodaSampleVeh01_C'",
+	"__name__": "SodaSampleVeh01_C_2147481056",
+	"__location__":
+	{
+		"x": 1283.398982153785,
+		"y": 1430.7418214297406,
+		"z": 502.61902320785669
+	},
+	"__rotation__":
+	{
+		"pitch": 0,
+		"yaw": 0,
+		"roll": 0
+	},
+	"__scale3D__":
+	{
+		"x": 1,
+		"y": 1,
+		"z": 1
+	},
+	"__unreal_soda_ver__": "1.2.1",
+	"__components__":
+	{
+		"VehicleMesh":
+		{
+			"__class__": "/Script/CoreUObject.Class'/Script/Engine.SkeletalMeshComponent'",
+			"__name__": "VehicleMesh",
+			"__location__":
+			{
+				"x": 1283.398982153785,
+				"y": 1430.7418214297406,
+				"z": 502.61902320785669
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"SpringArm":
+		{
+			"__class__": "/Script/CoreUObject.Class'/Script/Engine.SpringArmComponent'",
+			"__name__": "SpringArm",
+			"__location__":
+			{
+				"x": 113.70900839794866,
+				"y": 7.1054273576010019e-12,
+				"z": 55.18777870430236
+			},
+			"__rotation__":
+			{
+				"pitch": -19.999999845072711,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"FollowCamera":
+		{
+			"__class__": "/Script/CoreUObject.Class'/Script/Engine.CameraComponent'",
+			"__name__": "FollowCamera",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"ChaosVehicleMovement":
+		{
+			"bShowWheelSates": false,
+			"bShowWheelGraph": false,
+			"bDrawDebugLines": false,
+			"bLogPhysStemp": false,
+			"sodaWheelSetups": [
+				{
+					"connectedSodaWheel":
+					{
+						"pathToSubobject": "WheelFL"
+					},
+					"overrideRadius": 25,
+					"bOverrideRadius": false,
+					"overrideFrictionMultiplier": 1,
+					"bOverrideFrictionMultiplier": false
+				},
+				{
+					"connectedSodaWheel":
+					{
+						"pathToSubobject": "WheelFR"
+					},
+					"overrideRadius": 25,
+					"bOverrideRadius": false,
+					"overrideFrictionMultiplier": 1,
+					"bOverrideFrictionMultiplier": false
+				},
+				{
+					"connectedSodaWheel":
+					{
+						"pathToSubobject": "WheelRL"
+					},
+					"overrideRadius": 25,
+					"bOverrideRadius": false,
+					"overrideFrictionMultiplier": 1,
+					"bOverrideFrictionMultiplier": false
+				},
+				{
+					"connectedSodaWheel":
+					{
+						"pathToSubobject": "WheelRR"
+					},
+					"overrideRadius": 25,
+					"bOverrideRadius": false,
+					"overrideFrictionMultiplier": 1,
+					"bOverrideFrictionMultiplier": false
+				}
+			],
+			"gUI":
+			{
+				"order": 2,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.SodaChaosWheeledVehicleMovementComponent'",
+			"__name__": "ChaosVehicleMovement"
+		},
+		"StaticVehicleMovement":
+		{
+			"gUI":
+			{
+				"order": 4,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.StaticWheeledVehicleMovementComponent'",
+			"__name__": "StaticVehicleMovement"
+		},
+		"WheelsRendering":
+		{
+			"bFlipWheelsMesh": false,
+			"bStagecoachEffect": false,
+			"shutterSpeed": 30,
+			"maxAngularVelocity": 256,
+			"wheelSpokeCount": 5,
+			"gUI":
+			{
+				"order": 9,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.WheelsRenderingComponent'",
+			"__name__": "WheelsRendering",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"BrakeSystem":
+		{
+			"mechanicalBrakeRate":
+			{
+				"riseRate": 3000,
+				"fallRate": 3000
+			},
+			"wheelBrakesSetup": [
+				{
+					"padFricCoeff": 0.34125000238418579,
+					"clpPistNo": 1,
+					"pistAr": 0.0050019999034702778,
+					"efcRd": 0.17499999701976776,
+					"brakeDist": 0.25,
+					"maxTorque": 1500,
+					"connectedWheel":
+					{
+						"pathToSubobject": "WheelFL"
+					}
+				},
+				{
+					"padFricCoeff": 0.34125000238418579,
+					"clpPistNo": 1,
+					"pistAr": 0.0050019999034702778,
+					"efcRd": 0.17499999701976776,
+					"brakeDist": 0.25,
+					"maxTorque": 1500,
+					"connectedWheel":
+					{
+						"pathToSubobject": "WheelFR"
+					}
+				},
+				{
+					"padFricCoeff": 0.34125000238418579,
+					"clpPistNo": 1,
+					"pistAr": 0.0050019999034702778,
+					"efcRd": 0.17499999701976776,
+					"brakeDist": 0.25,
+					"maxTorque": 1300,
+					"connectedWheel":
+					{
+						"pathToSubobject": "WheelRL"
+					}
+				},
+				{
+					"padFricCoeff": 0.34125000238418579,
+					"clpPistNo": 1,
+					"pistAr": 0.0050019999034702778,
+					"efcRd": 0.17499999701976776,
+					"brakeDist": 0.25,
+					"maxTorque": 1300,
+					"connectedWheel":
+					{
+						"pathToSubobject": "WheelRR"
+					}
+				}
+			],
+			"bAcceptPedalFromVehicleInput": true,
+			"gUI":
+			{
+				"order": 14,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleBrakeSystemSimpleComponent'",
+			"__name__": "BrakeSystem",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"SteeringRack":
+		{
+			"maxSteerAngle": 30,
+			"bAcceptSteerFromVehicleInput": true,
+			"gUI":
+			{
+				"order": 16,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleSteeringRackSimpleComponent'",
+			"__name__": "SteeringRack",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"HandBrake":
+		{
+			"gUI":
+			{
+				"order": 3,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleHandBrakeSimpleComponent'",
+			"__name__": "HandBrake",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"InputKeyboard":
+		{
+			"throttleInputRate":
+			{
+				"riseRate": 5,
+				"fallRate": 5
+			},
+			"brakeInputRate":
+			{
+				"riseRate": 5,
+				"fallRate": 5
+			},
+			"inputSteeringLimit": 1,
+			"inputThrottleLimit": 1,
+			"inputBrakeLimit": 1,
+			"bAutoReavers": true,
+			"gearChangeTime": 0.20000000298023224,
+			"bUpdateDefaultsButtonsFromKeyboard": true,
+			"gUI":
+			{
+				"order": 10,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleInputKeyboardComponent'",
+			"__name__": "InputKeyboard",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"InputJoy":
+		{
+			"linkToSteering":
+			{
+				"pathToSubobject": "SteeringRack"
+			},
+			"inputBrakeDeadzone": 0.019999999552965164,
+			"bCreepMode": false,
+			"creepSpeed": 7,
+			"maxCreepThrottle": 0.20000000298023224,
+			"bFeedbackAutocenterEnabled": true,
+			"bFeedbackResistionEnabled": true,
+			"bFeedbackDiffEnabled": true,
+			"feedbackAutocenterCoeff": 2,
+			"feedbackDiffCoeff": 1,
+			"feedbackResistionCoeff": 0,
+			"feedbackFilter": 0.30000001192092896,
+			"calcDriverForceCompensationCoeff": 1.5,
+			"calcDriverForceCompensationDeadZone": 0.40000000596046448,
+			"bShowFeedback": false,
+			"bEnableBumpEffect": false,
+			"bumpEffectThreshold": 150,
+			"bumpEffectForceCoef": 30,
+			"bUpdateDefaultsButtonsFromKeyboard": true,
+			"gUI":
+			{
+				"order": 11,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleInputJoyComponent'",
+			"__name__": "InputJoy",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"Engine":
+		{
+			"torqueCurveMultiplier": 1,
+			"bAcceptPedalFromVehicleInput": true,
+			"bFlipAngularVelocity": false,
+			"linkToTorqueTransmission":
+			{
+				"pathToSubobject": "GearBox"
+			},
+			"ratio": 1,
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 6,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleEngineSimpleComponent'",
+			"__name__": "Engine",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"InputExternal":
+		{
+			"bUpdateDefaultsButtonsFromKeyboard": true,
+			"gUI":
+			{
+				"order": 12,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleInputExternalComponent'",
+			"__name__": "InputExternal",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"InputAI":
+		{
+			"throttleInputRate":
+			{
+				"riseRate": 5,
+				"fallRate": 5
+			},
+			"brakeInputRate":
+			{
+				"riseRate": 5,
+				"fallRate": 5
+			},
+			"steerInputRate":
+			{
+				"riseRate": 5,
+				"fallRate": 5
+			},
+			"speedLimit": 50,
+			"throttlePedalLimit": 1,
+			"speedSlow": 10,
+			"maxBreakingAcceleration": 4.8000001907348633,
+			"breakingApplyingLag": 1.5,
+			"curvatreSmoothingCoef": 0.40000000596046448,
+			"speedToCurvatureCoef": 68,
+			"sideErrorSpeedCoef": 0.00019999999494757503,
+			"throttlePropCoef": 0.039999999105930328,
+			"forwardingDistanceDir": 200,
+			"forwardingDistanceLoc": 200,
+			"steerDirToLocErrorCoef": 0.60000002384185791,
+			"samePointsDelta": 30,
+			"steeringDirErrorReducingAtLowSpeedCoef": 0.33000001311302185,
+			"rate": 1,
+			"obstacleStopDistance": 10,
+			"routeSectionPointMaxSideDeviation": 10,
+			"steeringPId":
+			{
+				"fFCoef": 0.035000000149011612,
+				"propCoef": 0.029999999329447746,
+				"integrCoef": 0,
+				"diffCoef": 0.0030000000260770321,
+				"lowFPSCoef": 0.20000000298023224,
+				"lowFpsDtLimit": 0.05000000074505806,
+				"bDebugOutput": false
+			},
+			"bUseRayCast": true,
+			"bUseActorsPositionChecking": false,
+			"bDebugOutputLog": false,
+			"bDrawCurrentRoute": false,
+			"bDrawTargetLocations": false,
+			"bForceUpdateInputStates": false,
+			"bForbidSetBrake": false,
+			"bForbidSetThrottle": false,
+			"bForbidSetSteering": false,
+			"bForbidSetGear": false,
+			"bUpdateDefaultsButtonsFromKeyboard": true,
+			"gUI":
+			{
+				"order": 13,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleInputAIComponent'",
+			"__name__": "InputAI",
+			"__location__":
+			{
+				"x": -54.094420593578434,
+				"y": -13.000640106985884,
+				"z": 53.058161105208796
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"WheelRL":
+		{
+			"boneName": "Wheel_RL",
+			"wheelIndex4WD": "RL",
+			"additionalOffset":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 24,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.SodaVehicleWheelComponent'",
+			"__name__": "WheelRL",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"WheelRR":
+		{
+			"boneName": "Wheel_RR",
+			"wheelIndex4WD": "RR",
+			"additionalOffset":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 23,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.SodaVehicleWheelComponent'",
+			"__name__": "WheelRR",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"WheelFR":
+		{
+			"boneName": "Wheel_FR",
+			"wheelIndex4WD": "FR",
+			"additionalOffset":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 22,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.SodaVehicleWheelComponent'",
+			"__name__": "WheelFR",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"WheelFL":
+		{
+			"boneName": "Wheel_FL",
+			"wheelIndex4WD": "FL",
+			"additionalOffset":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 21,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.SodaVehicleWheelComponent'",
+			"__name__": "WheelFL",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"Differential":
+		{
+			"differentialType": "Open_RearDrive",
+			"ratio": 1,
+			"gUI":
+			{
+				"order": 5,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleDifferentialSimpleComponent'",
+			"__name__": "Differential",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"GearBox":
+		{
+			"linkToTorqueTransmission":
+			{
+				"pathToSubobject": "Differential"
+			},
+			"bAcceptGearFromVehicleInput": true,
+			"bUseAutomaticGears": false,
+			"forwardGearRatios": [ 10 ],
+			"reverseGearRatios": [ 10 ],
+			"changeUpRPM": 4500,
+			"changeDownRPM": 2000,
+			"gearChangeTime": 0.20000000298023224,
+			"gUI":
+			{
+				"order": 7,
+				"bIsDeleted": true
+			},
+			"common":
+			{
+				"activation": "None",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleGearBoxSimpleComponent'",
+			"__name__": "GearBox",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"LightSet":
+		{
+			"iOBusNodeName": "LightSetNode",
+			"linkToIOBus":
+			{
+				"pathToSubobject": "IOBus"
+			},
+			"bUseIOs": false,
+			"defaultLightSetups": [
+				{
+					"lightName": "TurnFL",
+					"materialPropertyName": "Intensity2",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Turn_FL",
+						"pinFunction": "Turn_FL",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TurnFR",
+					"materialPropertyName": "Intensity2",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Turn_FR",
+						"pinFunction": "Turn_FR",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TurnRL",
+					"materialPropertyName": "Intensity2",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Turn_RL",
+						"pinFunction": "Turn_RL",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TurnRR",
+					"materialPropertyName": "Intensity2",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Turn_RR",
+						"pinFunction": "Turn_RR",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "BrakeL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Brake_L",
+						"pinFunction": "Brake_L",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "BrakeR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Brake_R",
+						"pinFunction": "Brake_R",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "ReverseL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Revers_L",
+						"pinFunction": "Revers_L",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "ReverseR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Revers_R",
+						"pinFunction": "Revers_R",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TailFL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Day_FL",
+						"pinFunction": "Day_FL",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TailFR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Day_FR",
+						"pinFunction": "Day_FR",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TailRL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Day_RL",
+						"pinFunction": "Day_RL",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "TailRR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "Day_RR",
+						"pinFunction": "Day_RR",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "HighBeamL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "hight_beam_l",
+						"pinFunction": "hight_beam_l",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "HighBeamR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "hight_beam_r",
+						"pinFunction": "hight_beam_r",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "LowBeamL",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "low_beam_l",
+						"pinFunction": "low_beam_l",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				},
+				{
+					"lightName": "LowBeamR",
+					"materialPropertyName": "Intensity",
+					"intensityMultiplayer": 10,
+					"iOPinSetup":
+					{
+						"exchangeName": "None",
+						"pinName": "low_beam_r",
+						"pinFunction": "low_beam_r",
+						"pinDir": "Output",
+						"minVoltage": 0,
+						"maxVoltage": 1,
+						"maxCurrent": 1
+					},
+					"bUseIO": false,
+					"bSendIOFeedback": false,
+					"resistanse": 4
+				}
+			],
+			"gUI":
+			{
+				"order": 1,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.LightSetComponent'",
+			"__name__": "LightSet",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"SodaVdmMovement":
+		{
+			"targetNumOfStepsPerSecond": 3000,
+			"rayLength": 1,
+			"brkTqMlt": 1,
+			"tracTqMlt": 1,
+			"coGOffest":
+			{
+				"x": -1.2209000000000001,
+				"y": 0,
+				"z": 0.34999999999999998
+			},
+			"plntMass": 2022,
+			"plntIntertiaTenzorRollPitchYaw":
+			{
+				"x": 432,
+				"y": 1922,
+				"z": 2066
+			},
+			"plntVehTrckWdthFrnt": 1.628000020980835,
+			"plntVehTrckWdthRe": 1.6369999647140503,
+			"plntWhelUnldRdFrnt": 0.37560001015663147,
+			"plntWhelUnldRdRe": 0.37560001015663147,
+			"plntVehDstCGFrntAxl": 1.5549999475479126,
+			"plntVehDstCGRearAxl": 1.3450000286102295,
+			"plntVehCGHgtAxl": 0.17000000178813934,
+			"plntSuspCz": 5565.22021484375,
+			"plntSuspHmax": 0.25,
+			"plntSuspKzFrnt": 62941.19921875,
+			"plntSuspKzRe": 65563.75,
+			"plntSuspVertDamp": 500,
+			"plntVehAeroDragCff": 0.47999998927116394,
+			"plntVehAeroFrntArea": 2.0999999046325684,
+			"plntVehAeroLiftCff": 0.10000000149011612,
+			"bReadFrictionCoefficients": false,
+			"plntFrictionCoeffSca": 5,
+			"bAllowManualTyreEdit": true,
+			"frntTyreTir":
+			{
+				"file": 0,
+				"fILE_VERSION": 0,
+				"uSE_MODE": 0,
+				"lONGVL": 0,
+				"vXLOW": 0,
+				"iP": 0,
+				"iP_NOM": 0,
+				"uNLOADED_RADIUS": 0,
+				"width": 0,
+				"aspect_ratio": 0,
+				"rIM_RADIUS": 0,
+				"rIM_WIdTH": 0,
+				"bOTTOMING_RADIUS": 0,
+				"vERTICAL_STIFFNESS": 0,
+				"vERTICAL_DAMPING": 0,
+				"dREFF": 0,
+				"bREFF": 0,
+				"fREFF": 0,
+				"fNOMIN": 0,
+				"dYNAMIC_STIFFNESS": 0,
+				"dYNAMIC_DAMPING": 0,
+				"kPUMIN": 0,
+				"kPUMAX": 0,
+				"aLPMIN": 0,
+				"aLPMAX": 0,
+				"cAMMIN": 0,
+				"cAMMAX": 0,
+				"fZMIN": 0,
+				"fZMAX": 0,
+				"lFZO": 0,
+				"lCX": 0,
+				"lEX": 0,
+				"lKX": 0,
+				"lHX": 0,
+				"lVX": 0,
+				"lMUX": 0,
+				"lGAX": 0,
+				"lCY": 0,
+				"lEY": 0,
+				"lKY": 0,
+				"lHY": 0,
+				"lVY": 0,
+				"lKYC": 0,
+				"lKZC": 0,
+				"lMP": 0,
+				"lMUY": 0,
+				"lGAY": 0,
+				"lKG": 0,
+				"lTR": 0,
+				"lRES": 0,
+				"lGAZ": 0,
+				"lXAL": 0,
+				"lYKA": 0,
+				"lVYKA": 0,
+				"lS": 0,
+				"lMX": 0,
+				"lMY": 0,
+				"lVMX": 0,
+				"lSGKP": 0,
+				"lSGAL": 0,
+				"lGYR": 0,
+				"lCZ": 0,
+				"lIP": 0,
+				"pCX1": 0,
+				"pDX1": 0,
+				"pDX2": 0,
+				"pDX3": 0,
+				"pEX1": 0,
+				"pEX2": 0,
+				"pEX3": 0,
+				"pEX4": 0,
+				"pKX1": 0,
+				"pKX2": 0,
+				"pKX3": 0,
+				"pHX1": 0,
+				"pHX2": 0,
+				"pVX1": 0,
+				"pVX2": 0,
+				"pPX1": 0,
+				"pPX2": 0,
+				"pPX3": 0,
+				"pPX4": 0,
+				"rBX1": 0,
+				"rBX2": 0,
+				"rCX1": 0,
+				"rHX1": 0,
+				"rEX1": 0,
+				"rEX2": 0,
+				"pTX1": 0,
+				"pTX2": 0,
+				"pTX3": 0,
+				"pTX4": 0,
+				"qSX1": 0,
+				"qSX2": 0,
+				"qSX3": 0,
+				"qSX4": 0,
+				"qSX5": 0,
+				"qSX6": 0,
+				"qSX7": 0,
+				"qSX8": 0,
+				"qSX9": 0,
+				"qSX10": 0,
+				"qSX11": 0,
+				"qPX1": 0,
+				"pCY1": 0,
+				"pDY1": 0,
+				"pDY2": 0,
+				"pDY3": 0,
+				"pEY1": 0,
+				"pEY2": 0,
+				"pEY3": 0,
+				"pEY4": 0,
+				"pKY1": 0,
+				"pKY2": 0,
+				"pKY3": 0,
+				"pHY1": 0,
+				"pHY2": 0,
+				"pHY3": 0,
+				"pVY1": 0,
+				"pVY2": 0,
+				"pVY3": 0,
+				"pVY4": 0,
+				"pPY1": 0,
+				"pPY2": 0,
+				"pPY3": 0,
+				"pPY4": 0,
+				"rBY1": 0,
+				"rBY2": 0,
+				"rBY3": 0,
+				"rCY1": 0,
+				"rHY1": 0,
+				"rVY1": 0,
+				"rVY2": 0,
+				"rVY3": 0,
+				"rVY4": 0,
+				"rVY5": 0,
+				"rVY6": 0,
+				"rEY1": 0,
+				"rEY2": 0,
+				"rHY2": 0,
+				"pTY1": 0,
+				"pTY2": 0,
+				"pTY3": 0,
+				"qSY1": 0,
+				"qSY2": 0,
+				"qSY3": 0,
+				"qSY4": 0,
+				"qSY5": 0,
+				"qSY6": 0,
+				"qSY7": 0,
+				"qSY8": 0,
+				"qBZ1": 0,
+				"qBZ2": 0,
+				"qBZ3": 0,
+				"qBZ4": 0,
+				"qBZ5": 0,
+				"qBZ9": 0,
+				"qBZ10": 0,
+				"qCZ1": 0,
+				"qDZ1": 0,
+				"qDZ2": 0,
+				"qDZ3": 0,
+				"qDZ4": 0,
+				"qDZ6": 0,
+				"qDZ7": 0,
+				"qDZ8": 0,
+				"qDZ9": 0,
+				"qEZ1": 0,
+				"qEZ2": 0,
+				"qEZ3": 0,
+				"qEZ4": 0,
+				"qEZ5": 0,
+				"qHZ1": 0,
+				"qHZ2": 0,
+				"qHZ3": 0,
+				"qHZ4": 0,
+				"qPZ1": 0,
+				"qPZ2": 0,
+				"sSZ1": 0,
+				"sSZ2": 0,
+				"sSZ3": 0,
+				"sSZ4": 0,
+				"qTZ1": 0,
+				"mBELT": 0,
+				"pECP1": 0,
+				"pECP2": 0,
+				"pDXP1": 0,
+				"pDXP2": 0,
+				"pDXP3": 0,
+				"pDYP1": 0,
+				"pDYP2": 0,
+				"pDYP3": 0,
+				"pDYP4": 0,
+				"pKYP1": 0,
+				"pHYP1": 0,
+				"pHYP2": 0,
+				"pHYP3": 0,
+				"pHYP4": 0,
+				"qDTP1": 0,
+				"qBRP1": 0,
+				"qCRP1": 0,
+				"qCRP2": 0,
+				"qDRP1": 0,
+				"qDRP2": 0,
+				"pA1": 0,
+				"pA2": 0,
+				"pB1": 0,
+				"pB2": 0,
+				"pB3": 0,
+				"pAE": 0,
+				"pBE": 0,
+				"pCE": 0,
+				"pLS": 0,
+				"pW1": 0,
+				"pW2": 0,
+				"pW3": 0,
+				"pW4": 0,
+				"n_WIdTH": 0,
+				"n_WIdTH_HP": 0,
+				"n_LENGTH": 0,
+				"n_LENGTH_HP": 0,
+				"rOAD_SPACING": 0,
+				"rOAD_SPACING_HP": 0,
+				"mAX_HEIGHT": 0,
+				"cONTACT_THREADS": 0,
+				"cONTACT_THREADS_HP": 0,
+				"ePSNL": 0,
+				"mC": 0,
+				"iC": 0,
+				"kX": 0,
+				"kY": 0,
+				"kP": 0,
+				"cX": 0,
+				"cY": 0,
+				"cP": 0,
+				"eP": 0,
+				"eP12": 0,
+				"bF2": 0,
+				"bP1": 0,
+				"bP2": 0,
+				"cXZ1": 0,
+				"cXZ2": 0,
+				"cXP1": 0,
+				"cXX1": 0,
+				"cYZ1": 0,
+				"cYZ2": 0,
+				"cYP1": 0,
+				"cYY1": 0,
+				"tYRE_MASS": 0,
+				"qMB": 0,
+				"qMC": 0,
+				"qIBY": 0,
+				"qIBXZ": 0,
+				"qIC": 0,
+				"qCBXZ": 0,
+				"qCBY": 0,
+				"qCBTH": 0,
+				"qCBGM": 0,
+				"qKBXZ": 0,
+				"qKBY": 0,
+				"qKBTH": 0,
+				"qKBGM": 0,
+				"qCCX": 0,
+				"qCCY": 0,
+				"qCCFI": 0,
+				"qKCX": 0,
+				"qKCY": 0,
+				"qKCFI": 0,
+				"qBVXZ": 0,
+				"qBVTH": 0,
+				"qRE0": 0,
+				"qV1": 0,
+				"qV2": 0,
+				"qFCX1": 0,
+				"qFCY1": 0,
+				"qFCY2": 0,
+				"qFCG1": 0,
+				"qFZ1": 0,
+				"qFZ2": 0,
+				"qFZ3": 0,
+				"qPFZ1": 0,
+				"fITTYP": 0,
+				"mFSAFE1": 0,
+				"mFSAFE2": 0,
+				"mFSAFE3": 0
+			},
+			"reTyreTir":
+			{
+				"file": 0,
+				"fILE_VERSION": 0,
+				"uSE_MODE": 0,
+				"lONGVL": 0,
+				"vXLOW": 0,
+				"iP": 0,
+				"iP_NOM": 0,
+				"uNLOADED_RADIUS": 0,
+				"width": 0,
+				"aspect_ratio": 0,
+				"rIM_RADIUS": 0,
+				"rIM_WIdTH": 0,
+				"bOTTOMING_RADIUS": 0,
+				"vERTICAL_STIFFNESS": 0,
+				"vERTICAL_DAMPING": 0,
+				"dREFF": 0,
+				"bREFF": 0,
+				"fREFF": 0,
+				"fNOMIN": 0,
+				"dYNAMIC_STIFFNESS": 0,
+				"dYNAMIC_DAMPING": 0,
+				"kPUMIN": 0,
+				"kPUMAX": 0,
+				"aLPMIN": 0,
+				"aLPMAX": 0,
+				"cAMMIN": 0,
+				"cAMMAX": 0,
+				"fZMIN": 0,
+				"fZMAX": 0,
+				"lFZO": 0,
+				"lCX": 0,
+				"lEX": 0,
+				"lKX": 0,
+				"lHX": 0,
+				"lVX": 0,
+				"lMUX": 0,
+				"lGAX": 0,
+				"lCY": 0,
+				"lEY": 0,
+				"lKY": 0,
+				"lHY": 0,
+				"lVY": 0,
+				"lKYC": 0,
+				"lKZC": 0,
+				"lMP": 0,
+				"lMUY": 0,
+				"lGAY": 0,
+				"lKG": 0,
+				"lTR": 0,
+				"lRES": 0,
+				"lGAZ": 0,
+				"lXAL": 0,
+				"lYKA": 0,
+				"lVYKA": 0,
+				"lS": 0,
+				"lMX": 0,
+				"lMY": 0,
+				"lVMX": 0,
+				"lSGKP": 0,
+				"lSGAL": 0,
+				"lGYR": 0,
+				"lCZ": 0,
+				"lIP": 0,
+				"pCX1": 0,
+				"pDX1": 0,
+				"pDX2": 0,
+				"pDX3": 0,
+				"pEX1": 0,
+				"pEX2": 0,
+				"pEX3": 0,
+				"pEX4": 0,
+				"pKX1": 0,
+				"pKX2": 0,
+				"pKX3": 0,
+				"pHX1": 0,
+				"pHX2": 0,
+				"pVX1": 0,
+				"pVX2": 0,
+				"pPX1": 0,
+				"pPX2": 0,
+				"pPX3": 0,
+				"pPX4": 0,
+				"rBX1": 0,
+				"rBX2": 0,
+				"rCX1": 0,
+				"rHX1": 0,
+				"rEX1": 0,
+				"rEX2": 0,
+				"pTX1": 0,
+				"pTX2": 0,
+				"pTX3": 0,
+				"pTX4": 0,
+				"qSX1": 0,
+				"qSX2": 0,
+				"qSX3": 0,
+				"qSX4": 0,
+				"qSX5": 0,
+				"qSX6": 0,
+				"qSX7": 0,
+				"qSX8": 0,
+				"qSX9": 0,
+				"qSX10": 0,
+				"qSX11": 0,
+				"qPX1": 0,
+				"pCY1": 0,
+				"pDY1": 0,
+				"pDY2": 0,
+				"pDY3": 0,
+				"pEY1": 0,
+				"pEY2": 0,
+				"pEY3": 0,
+				"pEY4": 0,
+				"pKY1": 0,
+				"pKY2": 0,
+				"pKY3": 0,
+				"pHY1": 0,
+				"pHY2": 0,
+				"pHY3": 0,
+				"pVY1": 0,
+				"pVY2": 0,
+				"pVY3": 0,
+				"pVY4": 0,
+				"pPY1": 0,
+				"pPY2": 0,
+				"pPY3": 0,
+				"pPY4": 0,
+				"rBY1": 0,
+				"rBY2": 0,
+				"rBY3": 0,
+				"rCY1": 0,
+				"rHY1": 0,
+				"rVY1": 0,
+				"rVY2": 0,
+				"rVY3": 0,
+				"rVY4": 0,
+				"rVY5": 0,
+				"rVY6": 0,
+				"rEY1": 0,
+				"rEY2": 0,
+				"rHY2": 0,
+				"pTY1": 0,
+				"pTY2": 0,
+				"pTY3": 0,
+				"qSY1": 0,
+				"qSY2": 0,
+				"qSY3": 0,
+				"qSY4": 0,
+				"qSY5": 0,
+				"qSY6": 0,
+				"qSY7": 0,
+				"qSY8": 0,
+				"qBZ1": 0,
+				"qBZ2": 0,
+				"qBZ3": 0,
+				"qBZ4": 0,
+				"qBZ5": 0,
+				"qBZ9": 0,
+				"qBZ10": 0,
+				"qCZ1": 0,
+				"qDZ1": 0,
+				"qDZ2": 0,
+				"qDZ3": 0,
+				"qDZ4": 0,
+				"qDZ6": 0,
+				"qDZ7": 0,
+				"qDZ8": 0,
+				"qDZ9": 0,
+				"qEZ1": 0,
+				"qEZ2": 0,
+				"qEZ3": 0,
+				"qEZ4": 0,
+				"qEZ5": 0,
+				"qHZ1": 0,
+				"qHZ2": 0,
+				"qHZ3": 0,
+				"qHZ4": 0,
+				"qPZ1": 0,
+				"qPZ2": 0,
+				"sSZ1": 0,
+				"sSZ2": 0,
+				"sSZ3": 0,
+				"sSZ4": 0,
+				"qTZ1": 0,
+				"mBELT": 0,
+				"pECP1": 0,
+				"pECP2": 0,
+				"pDXP1": 0,
+				"pDXP2": 0,
+				"pDXP3": 0,
+				"pDYP1": 0,
+				"pDYP2": 0,
+				"pDYP3": 0,
+				"pDYP4": 0,
+				"pKYP1": 0,
+				"pHYP1": 0,
+				"pHYP2": 0,
+				"pHYP3": 0,
+				"pHYP4": 0,
+				"qDTP1": 0,
+				"qBRP1": 0,
+				"qCRP1": 0,
+				"qCRP2": 0,
+				"qDRP1": 0,
+				"qDRP2": 0,
+				"pA1": 0,
+				"pA2": 0,
+				"pB1": 0,
+				"pB2": 0,
+				"pB3": 0,
+				"pAE": 0,
+				"pBE": 0,
+				"pCE": 0,
+				"pLS": 0,
+				"pW1": 0,
+				"pW2": 0,
+				"pW3": 0,
+				"pW4": 0,
+				"n_WIdTH": 0,
+				"n_WIdTH_HP": 0,
+				"n_LENGTH": 0,
+				"n_LENGTH_HP": 0,
+				"rOAD_SPACING": 0,
+				"rOAD_SPACING_HP": 0,
+				"mAX_HEIGHT": 0,
+				"cONTACT_THREADS": 0,
+				"cONTACT_THREADS_HP": 0,
+				"ePSNL": 0,
+				"mC": 0,
+				"iC": 0,
+				"kX": 0,
+				"kY": 0,
+				"kP": 0,
+				"cX": 0,
+				"cY": 0,
+				"cP": 0,
+				"eP": 0,
+				"eP12": 0,
+				"bF2": 0,
+				"bP1": 0,
+				"bP2": 0,
+				"cXZ1": 0,
+				"cXZ2": 0,
+				"cXP1": 0,
+				"cXX1": 0,
+				"cYZ1": 0,
+				"cYZ2": 0,
+				"cYP1": 0,
+				"cYY1": 0,
+				"tYRE_MASS": 0,
+				"qMB": 0,
+				"qMC": 0,
+				"qIBY": 0,
+				"qIBXZ": 0,
+				"qIC": 0,
+				"qCBXZ": 0,
+				"qCBY": 0,
+				"qCBTH": 0,
+				"qCBGM": 0,
+				"qKBXZ": 0,
+				"qKBY": 0,
+				"qKBTH": 0,
+				"qKBGM": 0,
+				"qCCX": 0,
+				"qCCY": 0,
+				"qCCFI": 0,
+				"qKCX": 0,
+				"qKCY": 0,
+				"qKCFI": 0,
+				"qBVXZ": 0,
+				"qBVTH": 0,
+				"qRE0": 0,
+				"qV1": 0,
+				"qV2": 0,
+				"qFCX1": 0,
+				"qFCY1": 0,
+				"qFCY2": 0,
+				"qFCG1": 0,
+				"qFZ1": 0,
+				"qFZ2": 0,
+				"qFZ3": 0,
+				"qPFZ1": 0,
+				"fITTYP": 0,
+				"mFSAFE1": 0,
+				"mFSAFE2": 0,
+				"mFSAFE3": 0
+			},
+			"bFrntTyreTirWasLoaded": false,
+			"bReTyreTirWasLoaded": false,
+			"recordFreqSec": 0.0099999997764825821,
+			"bDrawForces": false,
+			"wheelForceOffset":
+			{
+				"x": 0,
+				"y": 0.45000000000000001,
+				"z": 0.20000000000000001
+			},
+			"bDrawRoadScannerRays": false,
+			"bEnableCameraLag": true,
+			"bVisualizeCollisionBox": false,
+			"bStopOnCollision": false,
+			"collisionExtentScaleLat": 1,
+			"collisionExtentScaleLgt": 1.1499999761581421,
+			"collisionHeigh": 1.1499999761581421,
+			"collisionBoxOffset":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 1
+			},
+			"scalingForce": 0,
+			"scalingForceVert": 0.017500000074505806,
+			"bLogPhysStemp": false,
+			"gUI":
+			{
+				"order": 20,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/BodySuspWheels.SodaVdmMovement'",
+			"__name__": "SodaVdmMovement"
+		},
+		"MotorFront":
+		{
+			"torqueCurveMultiplier": 0,
+			"bAcceptPedalFromVehicleInput": true,
+			"bFlipAngularVelocity": false,
+			"linkToTorqueTransmission":
+			{
+				"pathToSubobject": "DifferentialFront"
+			},
+			"ratio": 1,
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 15,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleEngineSimpleComponent'",
+			"__name__": "MotorFront",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"DifferentialFront":
+		{
+			"differentialType": "Open_FrontDrive",
+			"ratio": 10.649999618530273,
+			"gUI":
+			{
+				"order": 17,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleDifferentialSimpleComponent'",
+			"__name__": "DifferentialFront",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"MotorRearLeft":
+		{
+			"torqueCurveMultiplier": 0.5,
+			"bAcceptPedalFromVehicleInput": true,
+			"bFlipAngularVelocity": false,
+			"linkToTorqueTransmission":
+			{
+				"pathToSubobject": "WheelRL"
+			},
+			"ratio": 10.649999618530273,
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 18,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleEngineSimpleComponent'",
+			"__name__": "MotorRearLeft",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"IOBus":
+		{
+			"gUI":
+			{
+				"order": 8,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.IOBusComponent'",
+			"__name__": "IOBus",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"MotorRearRight":
+		{
+			"torqueCurveMultiplier": 0.5,
+			"bAcceptPedalFromVehicleInput": true,
+			"bFlipAngularVelocity": false,
+			"linkToTorqueTransmission":
+			{
+				"pathToSubobject": "WheelRR"
+			},
+			"ratio": 10.649999618530273,
+			"bVerboseLog": false,
+			"gUI":
+			{
+				"order": 19,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 1,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.VehicleEngineSimpleComponent'",
+			"__name__": "MotorRearRight",
+			"__location__":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"GenericCameraPinhole":
+		{
+			"publisherClass": "/Script/CoreUObject.Class'/Script/SodaROS2.ROS2CameraPublisher'",
+			"publisher":
+			{
+				"_ClassName": "/Script/SodaROS2.ROS2CameraPublisher",
+				"nodeNamespace": "SodaSim",
+				"topic": "/vehicle/camera",
+				"qoS":
+				{
+					"depth": 1,
+					"historyPolicy": "KeepLast",
+					"reliabilityPolicy": "BestEffort",
+					"durabilityPolicy": "Volatile",
+					"livelinessPolicy": "Automatic"
+				},
+				"frameId": "base_link"
+			},
+			"fOVAngle": 35,
+			"format": "ColorBGR8",
+			"width": 640,
+			"height": 640,
+			"maxDepthDistance": 300,
+			"bUseCustomAutoExposure": true,
+			"autoExposureMinBrightness": -10,
+			"autoExposureMaxBrightness": 20,
+			"autoExposureBias": 1,
+			"bForceLinearGamma": true,
+			"bLogTick": false,
+			"defaultSavePath": "{0}.png",
+			"fOVSetup":
+			{
+				"fOVRenderingStrategy": "OnSelect",
+				"color":
+				{
+					"r": 0.10000000149011612,
+					"g": 0.5,
+					"b": 0.5,
+					"a": 1
+				},
+				"maxViewDistance": 300
+			},
+			"cFA_0":
+			{
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"cFA_1":
+			{
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"cFA_2":
+			{
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"cFA_3":
+			{
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"gUI":
+			{
+				"order": 0,
+				"bIsDeleted": false
+			},
+			"common":
+			{
+				"activation": "OnStartScenario",
+				"realtimeTickDivider": 4,
+				"nonRealtimeTickDivider": 3,
+				"bWriteDataset": false,
+				"bDrawDebugCanvas": false
+			},
+			"tickData":
+			{
+			},
+			"__class__": "/Script/CoreUObject.Class'/Script/UnrealSoda.GenericCameraPinholeSensor'",
+			"__name__": "GenericCameraPinhole",
+			"__location__":
+			{
+				"x": 154.3273416152872,
+				"y": 4.5081010284775402e-06,
+				"z": 141.38811012519227
+			},
+			"__rotation__":
+			{
+				"pitch": 0,
+				"yaw": 0,
+				"roll": 0
+			},
+			"__scale3D__":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		"GameplayTasksComponent":
+		{
+			"__class__": "/Script/CoreUObject.Class'/Script/GameplayTasks.GameplayTasksComponent'",
+			"__name__": "GameplayTasksComponent"
+		}
+	}
+}
