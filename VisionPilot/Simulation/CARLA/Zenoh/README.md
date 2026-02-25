@@ -6,7 +6,7 @@ This directory provides a Zenoh-based CARLA bridge and related pipelines.
 
 * CARLA + Zenoh: Vision Pipelines Demo
 
-[![CARLA + Zenoh Vision Pipelines Demo](https://img.youtube.com/vi/wHhzBvP6x3Q/hqdefault.jpg)](https://youtu.be/wHhzBvP6x3Q "CARLA + Zenoh: Vision Pipelines Demo")
+[![CARLA + Zenoh Vision Pipelines Demo](https://img.youtube.com/vi/TQ6JwexlXvo/hqdefault.jpg)](https://youtu.be/TQ6JwexlXvo "CARLA + Zenoh: Vision Pipelines Demo")
 
 ## Dependencies
 
