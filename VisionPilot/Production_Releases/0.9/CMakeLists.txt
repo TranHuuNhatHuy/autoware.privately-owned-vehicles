@@ -303,6 +303,14 @@ target_include_directories(speed_planning PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
 
+# Longitudinal control module (PID controller for speed tracking)
+add_library(longitudinal_control
+    src/longitudinal/pi_controller.cpp
+)
+target_include_directories(longitudinal_control PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+)
+
 # Config reader module (properties file format - no dependencies)
 add_library(config_reader
     src/config/config_reader.cpp
@@ -329,6 +337,7 @@ set(VISIONPILOT_LIBS
     visionpilot_lane_tracking
     longitudinal_tracking
     speed_planning
+    longitudinal_control
     camera_utils
     path_planning
     steering_control
