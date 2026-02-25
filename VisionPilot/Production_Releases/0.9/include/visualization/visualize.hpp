@@ -69,4 +69,7 @@ void showLaneDepartureWarning(cv::Mat& img);
 } // namespace autoware_pov::vision::egolanes
 
 #endif // VISUALIZATION_VISUALIZE_HPP_
+<<<<<<< HEAD
 
+=======
+>>>>>>> d50cedd2 (unifying local and remote to avoid merge conflict)
