@@ -299,8 +299,13 @@ int main(int argc, char* argv[]) {
 #ifdef CUDA_FOUND
                 bool cuda_success = false;
                 // Try CUDA acceleration first
-                if (model_type != "egolanes") {
+                if (model_type == "segmentation") {
                     cuda_success = autoware_pov::common::MasksVisualizationKernels::createMaskFromTensorCUDA(
+                        tensor_data, tensor_shape, mask
+                    );
+                }
+                else if (model_type == "egolanes") {
+                    cuda_success = autoware_pov::common::MasksVisualizationKernels::createEgoLanesMaskFromTensorCUDA(
                         tensor_data, tensor_shape, mask
                     );
                 }
