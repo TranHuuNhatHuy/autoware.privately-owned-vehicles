@@ -40,6 +40,7 @@ using AutoSteerEngine =
 #include "inference/autospeed/onnxruntime_engine.hpp"
 #include "tracking/object_finder.hpp"
 #include "speed_planning/speed_planning.hpp"
+#include "longitudinal/pi_controller.hpp"
 
 #ifdef ENABLE_RERUN
 #include "rerun/rerun_logger.hpp"
@@ -73,6 +74,7 @@ using namespace autoware_pov::vision::steering_control;
 using namespace autoware_pov::vision::tracking;
 using namespace autoware_pov::vision::autospeed;
 using namespace autoware_pov::vision::speed_planning;
+using namespace autoware_pov::vision::longitudinal;
 using namespace autoware_pov::drivers;
 using namespace autoware_pov::config;
 using namespace std::chrono;
@@ -257,6 +259,9 @@ struct LongitudinalResult {
     double safe_distance_m = 0.0;   // Computed RSS d_min (m); 0 when no CIPO
     bool   fcw_active      = false; // Forward Collision Warning
     bool   aeb_active      = false; // Automatic Emergency Braking
+
+    // Longitudinal control output
+    double control_effort_ms2 = 0.0; // PID controller output: acceleration/deceleration (m/s²)
 };
 
 // Unified result combining lateral and longitudinal for synchronized visualization
@@ -287,6 +292,9 @@ struct UnifiedResult {
     double safe_distance_m = 0.0;
     bool   fcw_active      = false;
     bool   aeb_active      = false;
+
+    // Longitudinal control output
+    double control_effort_ms2 = 0.0;
 
     // CAN data
     CanVehicleState vehicle_state;
@@ -658,13 +666,19 @@ void longitudinalInferenceThread(
     std::atomic<bool>& running,
     float conf_thresh,
     float iou_thresh,
-    double ego_speed_ms   // Static placeholder; replace with CAN bus value when available
+    double ego_speed_ms,   // Static placeholder; replace with CAN bus value when available
+    double pid_K_p = 0.5,  // Proportional gain for longitudinal PID controller
+    double pid_K_i = 0.1,  // Integral gain
+    double pid_K_d = 0.05  // Derivative gain
 )
 {
     int last_frame_number = -1;
 
     // Construct SpeedPlanner once; state is updated per-frame via setters
     SpeedPlanner speed_planner(0.0, 100.0, ego_speed_ms, ego_speed_ms, false);
+
+    // Construct longitudinal PID controller
+    PIController longitudinal_controller(pid_K_p, pid_K_i, pid_K_d);
 
     while (running.load()) {
         // Wait for new frame from double buffer
@@ -710,6 +724,14 @@ void longitudinalInferenceThread(
             aeb_active     = speed_planner.getAEBState();
         }
 
+        // 4. Run longitudinal PID controller to compute acceleration/deceleration effort
+        double control_effort_ms2 = 0.0;
+        if (tracking_result.cut_in_detected || tracking_result.kalman_reset) {
+            // Reset controller on cut-in or Kalman reset to avoid windup
+            longitudinal_controller.reset();
+        }
+        control_effort_ms2 = longitudinal_controller.computeEffort(ego_speed_ms, ideal_speed_ms);
+
         auto t_inference_end = steady_clock::now();
 
         // Calculate inference latency
@@ -748,10 +770,11 @@ void longitudinalInferenceThread(
         result.cut_in_detected = tracking_result.cut_in_detected;
         result.kalman_reset    = tracking_result.kalman_reset;
         result.vehicle_state   = frame_data.vehicle_state;
-        result.ideal_speed_ms  = ideal_speed_ms;
-        result.safe_distance_m = safe_distance_m;
-        result.fcw_active      = fcw_active;
-        result.aeb_active      = aeb_active;
+        result.ideal_speed_ms   = ideal_speed_ms;
+        result.safe_distance_m  = safe_distance_m;
+        result.fcw_active       = fcw_active;
+        result.aeb_active       = aeb_active;
+        result.control_effort_ms2 = control_effort_ms2;
         
         output_queue.push(result);
     }
@@ -807,7 +830,8 @@ void unifiedDisplayThread(
                  << "pid_steering_raw_deg,pid_steering_filtered_deg,"
                  << "autosteer_angle_deg,autosteer_valid,"
                  << "cipo_exists,cipo_distance_m,cipo_velocity_ms,"
-                 << "safe_distance_m,ideal_speed_ms,fcw_active,aeb_active\n";
+                 << "safe_distance_m,ideal_speed_ms,fcw_active,aeb_active,"
+                 << "control_effort_ms2\n";
         std::cout << "CSV logging enabled: " << csv_log_path << std::endl;
     }
 
@@ -912,7 +936,7 @@ void unifiedDisplayThread(
                                 cv::FONT_HERSHEY_DUPLEX, 1.0, cv::Scalar(0, 128, 255), 2);
                 }
 
-                // 6. Ideal speed + RSS distance HUD (top-right area)
+                // 6. Ideal speed + RSS distance + Control effort HUD (top-right area)
                 if (lon.cipo.exists) {
                     std::string speed_str = "Set: " + 
                         [&]{ std::ostringstream ss; ss << std::fixed << std::setprecision(1)
@@ -920,12 +944,22 @@ void unifiedDisplayThread(
                     std::string rss_str   = "d_safe: " +
                         [&]{ std::ostringstream ss; ss << std::fixed << std::setprecision(1)
                              << lon.safe_distance_m << "m"; return ss.str(); }();
+                    std::string effort_str = "Effort: " +
+                        [&]{ std::ostringstream ss; ss << std::fixed << std::setprecision(2)
+                             << lon.control_effort_ms2; return ss.str(); }() + " m/s²";
                     cv::putText(display_frame, speed_str,
                                 cv::Point(display_frame.cols - 300, 30),
                                 cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 255), 2);
                     cv::putText(display_frame, rss_str,
                                 cv::Point(display_frame.cols - 300, 60),
                                 cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(200, 200, 0), 2);
+                    // Color-code effort: green = accelerate, red = decelerate
+                    cv::Scalar effort_color = (lon.control_effort_ms2 >= 0) 
+                                             ? cv::Scalar(0, 255, 0)  // Green for acceleration
+                                             : cv::Scalar(0, 0, 255); // Red for deceleration
+                    cv::putText(display_frame, effort_str,
+                                cv::Point(display_frame.cols - 300, 90),
+                                cv::FONT_HERSHEY_SIMPLEX, 0.7, effort_color, 2);
                 }
 
                 // 7. Frame number and sync indicator
@@ -989,7 +1023,8 @@ void unifiedDisplayThread(
                              << lon.safe_distance_m << ","
                              << lon.ideal_speed_ms << ","
                              << (lon.fcw_active ? 1 : 0) << ","
-                             << (lon.aeb_active ? 1 : 0) << "\n";
+                             << (lon.aeb_active ? 1 : 0) << ","
+                             << lon.control_effort_ms2 << "\n";
                 }
                 
                 // ===== METRICS =====
@@ -1828,6 +1863,10 @@ int main(int argc, char** argv)
     // TODO: replace 10.0 with can_interface->getState().speed_kmph (convert to m/s)
     //       once CAN bus speed is validated.
     constexpr double kStaticEgoSpeedMs = 10.0;
+    // Longitudinal PID controller gains
+    constexpr double kLongitudinalKp = 0.5;  // Proportional gain
+    constexpr double kLongitudinalKi = 0.1;  // Integral gain
+    constexpr double kLongitudinalKd = 0.05; // Derivative gain
 
     std::thread t_longitudinal_inference(longitudinalInferenceThread,
                                          std::ref(*autospeed_engine),
@@ -1838,7 +1877,10 @@ int main(int argc, char** argv)
                                          std::ref(running),
                                          autospeed_conf_thresh,
                                          autospeed_iou_thresh,
-                                         kStaticEgoSpeedMs);
+                                         kStaticEgoSpeedMs,
+                                         kLongitudinalKp,
+                                         kLongitudinalKi,
+                                         kLongitudinalKd);
 
     // Unified display thread (merges lateral + longitudinal visualization)
 #ifdef ENABLE_RERUN
