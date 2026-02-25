@@ -44,12 +44,18 @@ We utilize an **End-to-End AI Architecture** in which each component technology 
 ## Technology Roadmap
 Rather than going for a single moonshot, we are sequentially building the core software stack of the Vision Pilot system in a modular manner, and releasing versions of the Vision Pilot system that serve a core customer need, where each new release expands upon the operational-design-domain, technology prowess and safety envelope of the prior release.
 
-As part of our technology roadmap, we will sequentially develop three versions of the Autoware Autonomous Highway Pilot System, called:
-- ***[Vision Pilot - Level 2+ highway autopilot through component-based End-to-End AI](/VisionPilot/)***
-- ***Vision Pilot PRO - Level 2+ highway and urban autopilot through monolithic End-to-End AI***
+As part of our technology roadmap, we will sequentially develop three versions of the Autoware Autonomous Highway Pilot System, these are:
+
+### Vision Pilot
+
+- ***[Vision Pilot - Level 2 single-lane autopilot through component-based End-to-End AI](/VisionPilot/)***
+- ***Vision Pilot Plus - Level 2+ highway autopilot through component-based End-to-End AI***
+- ***Vision Pilot PRO - Level 2++ highway and urban autopilot through monolithic End-to-End AI***
 - ***Vision Pilot Drive - Level 4+ all road autonomy using hybrid End-to-End AI***
 
 <img src="/Media/VisionPilot.png" width="100%">
+
+<img src="/Media/VisionPilot_Plus.png" width="100%">
 
 <img src="/Media/VisionPilot_PRO.png" width="100%">
 
