@@ -34,6 +34,10 @@ models.egolanes.threshold=0.0
 # AutoSteer model (required)
 models.autosteer.path=/path/to/AutoSteer_FP32.onnx
 
+#AutoSpeed model (required)
+models.autospeed.path=/path/to/AutoSpeed.onnx
+models.homography_yaml.path = /path/to/homography_yaml.yaml
+
 # ============================================
 # Steering Control Parameters
 # ============================================
