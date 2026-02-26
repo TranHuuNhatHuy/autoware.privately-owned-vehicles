@@ -41,6 +41,7 @@ using AutoSteerEngine =
 #include "tracking/object_finder.hpp"
 #include "speed_planning/speed_planning.hpp"
 #include "longitudinal/pi_controller.hpp"
+#include "publisher/visionpilot_shared_state.hpp"
 
 #ifdef ENABLE_RERUN
 #include "rerun/rerun_logger.hpp"
@@ -75,6 +76,7 @@ using namespace autoware_pov::vision::tracking;
 using namespace autoware_pov::vision::autospeed;
 using namespace autoware_pov::vision::speed_planning;
 using namespace autoware_pov::vision::longitudinal;
+using namespace autoware_pov::vision::publisher;
 using namespace autoware_pov::drivers;
 using namespace autoware_pov::config;
 using namespace std::chrono;
@@ -794,7 +796,8 @@ void unifiedDisplayThread(
     bool save_video,
     const std::string& output_video_path,
     const std::string& csv_log_path,
-    CanInterface* can_interface = nullptr
+    CanInterface* can_interface = nullptr,
+    VisionPilotSharedState* shared_state = nullptr
 #ifdef ENABLE_RERUN
     , autoware_pov::vision::rerun_integration::RerunLogger* rerun_logger = nullptr
 #endif
@@ -1027,6 +1030,45 @@ void unifiedDisplayThread(
                              << lon.control_effort_ms2 << "\n";
                 }
                 
+                // ===== SHARED-MEMORY PUBLISH =====
+                if (shared_state) {
+                    VisionPilotState ipc{};
+                    ipc.frame_number = static_cast<uint64_t>(frame_num);
+
+                    // Lateral
+                    ipc.steering_pid_deg       = lat.steering_angle;
+                    ipc.steering_pid_raw_deg   = lat.steering_angle_raw;
+                    ipc.steering_autosteer_deg = lat.autosteer_angle;
+                    ipc.autosteer_valid        = lat.autosteer_valid;
+                    ipc.cte_m                  = lat.path_output.fused_valid ? lat.path_output.cte       : 0.0;
+                    ipc.yaw_error_rad          = lat.path_output.fused_valid ? lat.path_output.yaw_error : 0.0;
+                    ipc.curvature_inv_m        = lat.path_output.fused_valid ? lat.path_output.curvature : 0.0;
+                    ipc.path_valid             = lat.path_output.fused_valid;
+                    ipc.lane_departure_warning = lat.lane_departure_warning;
+
+                    // Longitudinal
+                    ipc.cipo_exists        = lon.cipo.exists;
+                    ipc.cipo_track_id      = lon.cipo.exists ? lon.cipo.track_id   : -1;
+                    ipc.cipo_class_id      = lon.cipo.exists ? lon.cipo.class_id   : 0;
+                    ipc.cipo_distance_m    = lon.cipo.exists ? lon.cipo.distance_m : 0.0;
+                    ipc.cipo_velocity_ms   = lon.cipo.exists ? lon.cipo.velocity_ms: 0.0;
+                    ipc.cut_in_detected    = lon.cut_in_detected;
+                    ipc.kalman_reset       = lon.kalman_reset;
+                    ipc.ideal_speed_ms     = lon.ideal_speed_ms;
+                    ipc.safe_distance_m    = lon.safe_distance_m;
+                    ipc.fcw_active         = lon.fcw_active;
+                    ipc.aeb_active         = lon.aeb_active;
+                    ipc.control_effort_ms2 = lon.control_effort_ms2;
+
+                    // CAN / ego
+                    const auto& can = lon.vehicle_state;
+                    ipc.can_valid              = can.is_valid;
+                    ipc.ego_speed_ms           = can.is_valid ? (can.speed_kmph / 3.6) : 0.0;
+                    ipc.ego_steering_angle_deg = can.is_steering_angle ? can.steering_angle_deg : 0.0;
+
+                    shared_state->publish(ipc);
+                }
+
                 // ===== METRICS =====
                 auto t_display_end = steady_clock::now();
                 long display_us = duration_cast<microseconds>(
@@ -1882,19 +1924,27 @@ int main(int argc, char** argv)
                                          kLongitudinalKi,
                                          kLongitudinalKd);
 
+    // Shared-memory publisher — VisionPilot outputs available to any reader process
+    std::unique_ptr<VisionPilotSharedState> shared_state;
+    try {
+        shared_state = std::make_unique<VisionPilotSharedState>("/visionpilot_state", true);
+    } catch (const std::exception& e) {
+        std::cerr << "[IPC] Warning: shared-memory publish disabled: " << e.what() << std::endl;
+    }
+
     // Unified display thread (merges lateral + longitudinal visualization)
 #ifdef ENABLE_RERUN
     std::thread t_display(unifiedDisplayThread, 
                           std::ref(display_queue), std::ref(display_queue_long),
                           std::ref(metrics), std::ref(running), 
                           enable_viz, save_video, output_video_path, csv_log_path,
-                          can_interface.get(), rerun_logger.get());
+                          can_interface.get(), shared_state.get(), rerun_logger.get());
 #else
     std::thread t_display(unifiedDisplayThread, 
                           std::ref(display_queue), std::ref(display_queue_long),
                           std::ref(metrics), std::ref(running), 
                           enable_viz, save_video, output_video_path, csv_log_path,
-                          can_interface.get());
+                          can_interface.get(), shared_state.get());
 #endif
 
     // Wait for all threads
