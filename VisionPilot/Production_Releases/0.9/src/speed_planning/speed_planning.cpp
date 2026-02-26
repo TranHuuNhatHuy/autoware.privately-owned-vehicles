@@ -85,7 +85,7 @@ double SpeedPlanner::calcIdealDrivingSpeed() {
 
         if (cipo_distance_ >= d_safe * 1.1) {
             // Comfortable gap — accelerate toward set speed
-            acceleration = SpeedPlanningConstants::a_max_accel;
+            acceleration = 1.0;
         } else if (cipo_distance_ >= d_safe * 0.5 && cipo_distance_ <= d_safe * 0.9) {
             // Slightly inside safe bubble — soft brake
             acceleration = -1.0;
@@ -102,7 +102,7 @@ double SpeedPlanner::calcIdealDrivingSpeed() {
         // 0.9 ≤ d/d_safe < 1.1 → no change (hold current speed)
     } else {
         // No lead car — accelerate
-        acceleration = SpeedPlanningConstants::a_max_accel;
+        acceleration = 1.0;
     }
 
     // 0.5 s look-ahead integration
