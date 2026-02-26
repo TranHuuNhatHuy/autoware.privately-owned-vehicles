@@ -20,3 +20,7 @@ Technology roadmap:
 | Vision Pilot | Level 2+ | Highways | Component-based E2E AI |
 | Vision Pilot PRO | Level 2++ | Highway & Urban | Monolithic E2E AI |
 | Vision Drive | Level 4+ | All Roads | Hybrid E2E AI |
+
+## Compatibility
+
+Works with Python 3.10.12.
