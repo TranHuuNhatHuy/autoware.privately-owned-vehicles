@@ -21,6 +21,18 @@ public:
     );
 #endif // CUDA_FOUND
 
+#ifdef CUDA_FOUND
+    /**
+     * Create CV::Mat EgoLanes mask from tensor data using CUDA
+     * Returns MONO8 mask for ROS2 pipeline
+     */
+    static bool createEgoLanesMaskFromTensorCUDA(
+        const float* tensor_data,
+        const std::vector<int64_t>& tensor_shape,
+        cv::Mat& output_mask
+    );
+#endif // CUDA_FOUND
+
 #ifdef HIP_FOUND
     /**
      * Create CV::Mat mask from tensor data using HIP

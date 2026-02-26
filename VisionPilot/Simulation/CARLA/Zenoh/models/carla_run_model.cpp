@@ -16,6 +16,7 @@
 #include "onnx_runtime_backend.hpp"
 #include "tensorrt_backend.hpp"
 #include "masks_visualization_engine.hpp"
+#include "masks_visualization_kernels.hpp"
 #include "depth_visualization_engine.hpp"
 #include "fps_timer.hpp"
 
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     app.add_option("-g,--gpu-id", gpu_id, "GPU ID to use for CUDA backend")
         ->default_val(DEFAULT_GPU_ID);
     std::string model_type = "scene";
-    app.add_option("-m,--model-type", model_type, "Type of the model (segmentation or domain)")
+    app.add_option("-m,--model-type", model_type, "Type of the model (segmentation, domain, or egolanes)")
         ->default_val("segmentation");
     CLI11_PARSE(app, argc, argv);
 
@@ -284,18 +285,30 @@ int main(int argc, char* argv[]) {
                 cv::Mat resized_depth;
                 cv::resize(depth_map, resized_depth, frame.size(), 0, 0, cv::INTER_LINEAR);
               
-                std::unique_ptr<autoware_pov::common::DepthVisualizationEngine> viz_engine_ = 
-                    std::make_unique<autoware_pov::common::DepthVisualizationEngine>();
-                final_frame = viz_engine_->visualize(resized_depth);
-            } else if (model_type == "segmentation") {
+                //// Only send out the depth
+                final_frame = resized_depth;
+                //// Debug: Show the blended result directly
+                // std::unique_ptr<autoware_pov::common::DepthVisualizationEngine> viz_engine_ = 
+                //     std::make_unique<autoware_pov::common::DepthVisualizationEngine>();
+                // final_frame = viz_engine_->visualize(resized_depth);
+                
+            } else if (model_type == "segmentation" || model_type == "egolanes") {
                 cv::Mat mask;
  
 #ifdef CUDA_FOUND
+                bool cuda_success = false;
                 // Try CUDA acceleration first
-                bool cuda_success = CudaVisualizationKernels::createMaskFromTensorCUDA(
-                  tensor_data, tensor_shape, mask
-                );
-    
+                if (model_type == "segmentation") {
+                    cuda_success = autoware_pov::common::MasksVisualizationKernels::createMaskFromTensorCUDA(
+                        tensor_data, tensor_shape, mask
+                    );
+                }
+                else if (model_type == "egolanes") {
+                    cuda_success = autoware_pov::common::MasksVisualizationKernels::createEgoLanesMaskFromTensorCUDA(
+                        tensor_data, tensor_shape, mask
+                    );
+                }
+
                 if (!cuda_success)
 #endif
                 {
@@ -307,21 +320,49 @@ int main(int argc, char* argv[]) {
                     mask = cv::Mat(height, width, CV_8UC1);
       
                     if (channels > 1) {
-                        // Multi-class segmentation: argmax across channels (NCHW format)
-                        for (int h = 0; h < height; ++h) {
-                            for (int w = 0; w < width; ++w) {
-                                float max_score = -1e9f;
-                                uint8_t best_class = 0;
-                                for (int c = 0; c < channels; ++c) {
-                                    // NCHW format: tensor_data[batch=0][channel=c][height=h][width=w]
-                                    float score = tensor_data[c * height * width + h * width + w];
-                                    if (score > max_score) {
-                                        max_score = score;
-                                        best_class = static_cast<uint8_t>(c);
+			            if (model_type == "segmentation"){
+                       	    // Multi-class segmentation: argmax across channels (NCHW format)
+                            for (int h = 0; h < height; ++h) {
+                                for (int w = 0; w < width; ++w) {
+                                    float max_score = -1e9f;
+                                    uint8_t best_class = 0;
+                                    for (int c = 0; c < channels; ++c) {
+                                        // NCHW format: tensor_data[batch=0][channel=c][height=h][width=w]
+                                        float score = tensor_data[c * height * width + h * width + w];
+                                        if (score > max_score) {
+                                            max_score = score;
+                                            best_class = static_cast<uint8_t>(c);
+                                        }
+                                    }
+                                    // Convert class IDs for scene segmentation: Class 1 -> 255, others -> 0
+                                    mask.at<uint8_t>(h, w) = (best_class == 1) ? 255 : 0;
+                                }
+                            }
+                        } else if (model_type == "egolanes") {
+                            const int HW = height * width;
+
+                            const float* c0 = tensor_data + 0 * HW; // ego-left
+                            const float* c1 = tensor_data + 1 * HW; // ego-right
+                            const float* c2 = tensor_data + 2 * HW; // all_other_lanes
+
+                            for (int h = 0; h < height; ++h) {
+                                for (int w = 0; w < width; ++w) {
+                                    const int idx = h * width + w;
+
+                                    const bool b0 = (c0[idx] > 0.0f);
+                                    const bool b1 = (c1[idx] > 0.0f);
+                                    const bool b2 = (c2[idx] > 0.0f);
+
+                                    if (b2) {
+                                        mask.at<uint8_t>(h, w) = 2;
+                                    } else if (b1) {
+                                        mask.at<uint8_t>(h, w) = 1;
+                                    } else if (b0) {
+                                        mask.at<uint8_t>(h, w) = 0;
+                                    } else {
+                                        mask.at<uint8_t>(h, w) = 255; // background
                                     }
                                 }
-                                // Convert class IDs for scene segmentation: Class 1 -> 255, others -> 0
-                                mask.at<uint8_t>(h, w) = (best_class == 1) ? 255 : 0;
                             }
                         }
                     } else {
@@ -334,7 +375,7 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-    
+
                 // Resize mask to original image size (use NEAREST for masks)
                 cv::Mat resized_mask;
                 cv::resize(mask, resized_mask, frame.size(), 0, 0, cv::INTER_NEAREST);
@@ -368,6 +409,7 @@ int main(int argc, char* argv[]) {
             // Benchmark: Output done
             timer.recordOutputEnd();
 
+            // Release sample
             z_drop(z_move(sample));
         }
         
@@ -376,6 +418,7 @@ int main(int argc, char* argv[]) {
         z_drop(z_move(handler));
         z_drop(z_move(sub));
         z_drop(z_move(s));
+	    cv::destroyAllWindows();
     } catch (const std::exception& e) {
         std::cerr << "Standard error: " << e.what() << std::endl;
         return -1;

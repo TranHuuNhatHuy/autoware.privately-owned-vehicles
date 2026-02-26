@@ -113,6 +113,8 @@ gdown -O models/ 'https://docs.google.com/uc?export=download&id=19gMPt_1z4eujo4j
 gdown -O models/ 'https://docs.google.com/uc?export=download&id=1zCworKw4aQ9_hDBkHfj1-sXitAAebl5Y'
 ## AutoSpeed
 gdown -O models/ 'https://docs.google.com/uc?export=download&id=1Zhe8uXPbrPr8cvcwHkl1Hv0877HHbxbB'
+## EgoLanes
+gdown -O models/ 'https://docs.google.com/uc?export=download&id=1b4jAoH6363ggTgVU0b6URbFfcOL3-r1Q'
 ```
 
 ### ROS2 Implementation

@@ -46,17 +46,12 @@ cv::Mat MasksVisualizationEngine::createColorMask(const cv::Mat& mask) {
         cv::inRange(mask, cv::Scalar(1), cv::Scalar(255), red_mask);
         color_mask.setTo(cv::Scalar(0, 0, 255), red_mask);  // BGR: Red
     } else if (viz_type_ == "domain") {
-        // Domain segmentation: Class 0=Orange, Class 255=Purple
-        for (int h = 0; h < mask.rows; ++h) {
-            for (int w = 0; w < mask.cols; ++w) {
-                uint8_t class_id = mask.at<uint8_t>(h, w);
-                if (class_id == 0) {
-                    color_mask.at<cv::Vec3b>(h, w) = cv::Vec3b(255, 93, 61);   // BGR: Orange
-                } else if (class_id == 255) {
-                    color_mask.at<cv::Vec3b>(h, w) = cv::Vec3b(145, 28, 255);  // BGR: Purple
-                }
-            }
-        }
+        color_mask.setTo(cv::Scalar(255, 93, 61),  mask == 0);     // BGR: Orange
+        color_mask.setTo(cv::Scalar(145, 28, 255), mask == 255);   // BGR: Purple
+    } else if (viz_type_ == "egolanes") {
+        color_mask.setTo(cv::Scalar(255, 0, 0),   mask == 0);     // ego-left
+        color_mask.setTo(cv::Scalar(255, 0, 200),  mask == 1);     // ego-right
+        color_mask.setTo(cv::Scalar(0, 153, 0),    mask == 2);     // all_other_lanes
     }
     
     return color_mask;

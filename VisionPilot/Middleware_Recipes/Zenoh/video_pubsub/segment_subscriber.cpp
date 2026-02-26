@@ -18,6 +18,7 @@ using namespace std;
 
 #define DEFAULT_KEYEXPR "video/raw"
 #define SEGMENTATION_KEYEXPR "video/segmented"
+#define VISUALIZATION_MODE "scene"
 
 #define RECV_BUFFER_SIZE 100
 
@@ -58,6 +59,8 @@ int main(int argc, char** argv) {
     app.add_option("-s,--segkey", seg_keyexpr, "The segmentation key expression to subscribe to")->default_val(SEGMENTATION_KEYEXPR);
     std::string config_path = "";
     app.add_option("-c,--config", config_path, "The configuration file. Currently, this file must be a valid JSON5 or YAML file.")->check(CLI::ExistingFile);;
+    std::string mode = VISUALIZATION_MODE;
+    app.add_option("-m,--mode", mode, "Visualization mode")->default_val(VISUALIZATION_MODE);
     CLI11_PARSE(app, argc, argv);
 
     try {
@@ -100,8 +103,8 @@ int main(int argc, char** argv) {
             throw std::runtime_error("Error declaring Zenoh subscriber for key expression: " + std::string(seg_keyexpr));
         }
 
-        std::unique_ptr<autoware_pov::common::MasksVisualizationEngine> viz_engine_ = 
-                std::make_unique<autoware_pov::common::MasksVisualizationEngine>("scene");
+        std::unique_ptr<autoware_pov::common::MasksVisualizationEngine> viz_engine_;
+        viz_engine_ = std::make_unique<autoware_pov::common::MasksVisualizationEngine>(mode);
         
         std::cout << "Subscribing to '" << keyexpr << "'..." << std::endl;
         std::cout << "Processing video... Press ESC to stop." << std::endl;

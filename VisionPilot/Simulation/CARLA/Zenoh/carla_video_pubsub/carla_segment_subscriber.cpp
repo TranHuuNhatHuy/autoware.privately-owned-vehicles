@@ -20,6 +20,7 @@ using namespace std;
 
 #define DEFAULT_KEYEXPR "video/raw"
 #define SEGMENTATION_KEYEXPR "video/segmented"
+#define VISUALIZATION_MODE "scene"
 
 #define RECV_BUFFER_SIZE 100
 
@@ -226,7 +227,9 @@ int main(int argc, char** argv) {
     std::string keyexpr = DEFAULT_KEYEXPR;
     app.add_option("-k,--key", keyexpr, "Key expression for raw image")->default_val(DEFAULT_KEYEXPR);
     std::string seg_keyexpr = SEGMENTATION_KEYEXPR;
-    app.add_option("-s,--segkey", seg_keyexpr, "Key expression for segmentation image")->default_val(SEGMENTATION_KEYEXPR);
+    app.add_option("-s,--segkey", seg_keyexpr, "The segmentation key expression to subscribe to")->default_val(SEGMENTATION_KEYEXPR);
+    std::string mode = VISUALIZATION_MODE;
+    app.add_option("-m,--mode", mode, "Visualization mode")->default_val(VISUALIZATION_MODE);
     CLI11_PARSE(app, argc, argv);
 
     try {
@@ -246,7 +249,7 @@ int main(int argc, char** argv) {
         z_owned_closure_sample_t closure;
         z_ring_channel_sample_new(&closure, &handler, RECV_BUFFER_SIZE);
         if (z_declare_subscriber(z_loan(s), &sub, z_loan(ke), z_move(closure), NULL) < 0) {
-            throw std::runtime_error("Error declaring Zenoh subscriber for key: " + keyexpr);
+            throw std::runtime_error("Error declaring Zenoh subscriber for key expression: " + std::string(keyexpr));
         }
         // Declare a Zenoh segmentation subscriber
         z_owned_subscriber_t seg_sub;
@@ -256,15 +259,14 @@ int main(int argc, char** argv) {
         z_owned_closure_sample_t seg_closure;
         z_ring_channel_sample_new(&seg_closure, &seg_handler, RECV_BUFFER_SIZE);
         if (z_declare_subscriber(z_loan(s), &seg_sub, z_loan(seg_ke), z_move(seg_closure), NULL) < 0) {
-            throw std::runtime_error("Error declaring Zenoh subscriber for key: " + seg_keyexpr);
+            throw std::runtime_error("Error declaring Zenoh subscriber for key expression: " + std::string(seg_keyexpr));
         }
+
+        std::unique_ptr<autoware_pov::common::MasksVisualizationEngine> viz_engine_;
+        viz_engine_ = std::make_unique<autoware_pov::common::MasksVisualizationEngine>(mode);
 
         std::cout << "Subscribing to raw: '" << keyexpr << "', segmented: '" << seg_keyexpr << "'..." << std::endl;
         std::cout << "Processing video... Press ESC to stop." << std::endl;
-
-        std::unique_ptr<autoware_pov::common::MasksVisualizationEngine> viz_engine =
-            std::make_unique<autoware_pov::common::MasksVisualizationEngine>("scene");
-
         z_owned_sample_t raw_sample;
         while (Z_OK == z_recv(z_loan(handler), &raw_sample)) {
             try {
@@ -290,18 +292,15 @@ int main(int argc, char** argv) {
                     z_drop(z_move(seg_sample));
                     continue;
                 }
+                
                 z_drop(z_move(seg_sample));
 
-                // Sanity check: size match for visualization
-                if (seg_frame.size() != raw_frame.size()) {
-                    std::cerr << "Warning: Segmentation frame size "
-                              << seg_frame.cols << "x" << seg_frame.rows
-                              << " does not match raw frame size "
-                              << raw_frame.cols << "x" << raw_frame.rows << std::endl;
-                    continue;
+                cv::Mat final_frame;
+                final_frame = viz_engine_->visualize(seg_frame, raw_frame);
+                if (cv::waitKey(1) == 27) { // Stop if 'ESC' is pressed
+                    std::cout << "Processing stopped by user." << std::endl;
+                    break;
                 }
-
-                cv::Mat final_frame = viz_engine->visualize(seg_frame, raw_frame);
 
                 // Print frame rate
                 static int frame_count = 0;
