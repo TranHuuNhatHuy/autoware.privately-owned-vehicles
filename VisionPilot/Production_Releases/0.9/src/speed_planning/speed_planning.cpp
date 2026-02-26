@@ -1,137 +1,125 @@
 /**
  * @file speed_planning.cpp
  * @brief Planning speed for ACC and AEB features
- * 
- * 
  */
 
- #include "speed_planning/speed_planning.hpp"
+#include "speed_planning/speed_planning.hpp"
+#include <iostream>
+#include <iomanip>
+#include <algorithm>
+#include <cmath>
 
 namespace autoware_pov::vision::speed_planning {
 
 SpeedPlanner::SpeedPlanner(
-                                       double relative_cipo_speed,
-                                       double cipo_distance,
-                                       double ego_speed,
-                                       double absolute_cipo_speed,
-                                       bool is_cipo_present)
-    : relative_cipo_speed(relative_cipo_speed), cipo_distance(cipo_distance), 
-    ego_speed(ego_speed), absolute_cipo_speed(absolute_cipo_speed), is_cipo_present(is_cipo_present)
+    double relative_cipo_speed,
+    double cipo_distance,
+    double ego_speed,
+    double absolute_cipo_speed,
+    bool is_cipo_present)
+    : relative_cipo_speed_(relative_cipo_speed),
+      cipo_distance_(cipo_distance),
+      ego_speed_(ego_speed),
+      absolute_cipo_speed_(absolute_cipo_speed),
+      is_cipo_present_(is_cipo_present),
+      speed_limit_(SpeedPlanningConstants::speed_limit),
+      is_forward_collision_warning_(false),
+      is_automatic_emergency_braking_(false)
 {
-    std::cout << std::fixed << std::setprecision(6); // 4 decimal places
-    std::cout << "Speed planner initialized with parameters:\n"
-              << "  relative_cipo_speed: " << relative_cipo_speed << "\n"
-              << "  cipo_distance: " << cipo_distance << "\n"
-              << "  ego_speed: " << ego_speed << "\n"
-              << "  absolute_cipo_speed: " << absolute_cipo_speed << std::endl;
-
-    SpeedPlanner::is_forward_collision_warning = false;
-    SpeedPlanner::is_automatic_emergency_braking = false;
+    std::cout << std::fixed << std::setprecision(3)
+              << "SpeedPlanner initialized:\n"
+              << "  ego_speed:           " << ego_speed_           << " m/s\n"
+              << "  cipo_distance:       " << cipo_distance_       << " m\n"
+              << "  relative_cipo_speed: " << relative_cipo_speed_ << " m/s\n"
+              << "  is_cipo_present:     " << is_cipo_present_     << "\n";
 }
 
-// Set the speed of the ego-car
-SpeedPlanner::setEgoSpeed(double ego_speed){
-    SpeedPlanner::ego_speed = ego_speed;
+void SpeedPlanner::setEgoSpeed(double ego_speed) {
+    ego_speed_ = ego_speed;
 }
 
-// Set whether or not a CIPO is present
-SpeedPlanner::setIsCIPOPresent(bool is_cipo_present){
-    SpeedPlanner::is_cipo_present = is_cipo_present;
+void SpeedPlanner::setIsCIPOPresent(bool is_cipo_present) {
+    is_cipo_present_ = is_cipo_present;
 }
 
-// Set the state of the CIPO
-SpeedPlanner::setCIPOState(double relative_cipo_speed, double cipo_distance){
-    SpeedPlanner::relative_cipo_speed = relative_cipo_speed;
-    SpeedPlanner::cipo_distance = cipo_distance;
+void SpeedPlanner::setCIPOState(double relative_cipo_speed, double cipo_distance) {
+    relative_cipo_speed_ = relative_cipo_speed;
+    cipo_distance_       = cipo_distance;
 }
 
-// Calculate the safe following distance based on Mobileye RSS
-double SpeedPlanner::calcSafeRSSDistance(){
-    double cipo_absolute_speed = SpeedPlanner::relative_cipo_speed + SpeedPlanner::ego_speed
+// Mobileye RSS safe distance formula:
+//   d_min = v_ego * ρ + 0.5 * a_accel * ρ²
+//         + (v_ego + ρ * a_accel)² / (2 * β_min)
+//         − v_cipo² / (2 * β_max)
+// where β_min, β_max are positive deceleration magnitudes.
+double SpeedPlanner::calcSafeRSSDistance() {
+    double cipo_abs_speed = ego_speed_ + relative_cipo_speed_;
 
-    // Mobileye RSS formula
-    double safe_distance = (SpeedPlanningConstants::response_time * SpeedPlanner::ego_speed) +
-    (0.5 *SpeedPlanningConstants::a_max_accel * SpeedPlanningConstants::response_time * SpeedPlanningConstants::response_time) +
-    ((SpeedPlanner::ego_speed + SpeedPlanningConstants::response_time * SpeedPlanningConstants::a_max_accel) * 
-    (SpeedPlanner::ego_speed + SpeedPlanningConstants::response_time * SpeedPlanningConstants::a_max_accel))/(2*SpeedPlanningConstants::a_min_brake) -
-    ((cipo_absolute_speed * cipo_absolute_speed)/(2*SpeedPlanningConstants::a_max_brake))
+    double v_after_reaction = ego_speed_ + SpeedPlanningConstants::response_time
+                                         * SpeedPlanningConstants::a_max_accel;
 
-    // Ensuring that safe distance is at least one car length
-    if (safe_distance < 5.0){
+    double safe_distance =
+        (SpeedPlanningConstants::response_time * ego_speed_) +
+        (0.5 * SpeedPlanningConstants::a_max_accel *
+         SpeedPlanningConstants::response_time * SpeedPlanningConstants::response_time) +
+        (v_after_reaction * v_after_reaction) / (2.0 * SpeedPlanningConstants::a_min_brake) -
+        (cipo_abs_speed * cipo_abs_speed)     / (2.0 * SpeedPlanningConstants::a_max_brake);
+
+    // Floor at one car length to avoid collapsing to zero at low speeds
+    if (safe_distance < 5.0) {
         safe_distance = 5.0;
     }
 
-    return safe_distance
-
+    return safe_distance;
 }
 
-// Calculate the ideal driving speed based on ensuring we have a safe
-// following distance
-double SpeedPlanner::calcIdealDrivingSpeed();
-{   
+double SpeedPlanner::calcIdealDrivingSpeed() {
     double acceleration = 0.0;
-    double set_speed = SpeedPlanner::ego_speed;
-    double safe_distance = 100.0;
-    SpeedPlanner::is_forward_collision_warning = false;
-    SpeedPlanner::is_automatic_emergency_braking = false;
+    double set_speed    = ego_speed_;
 
-    // If there is a lead car
-    if(SpeedPlanner::is_cipo_present){
+    is_forward_collision_warning_  = false;
+    is_automatic_emergency_braking_ = false;
 
-        safe_distance = SpeedPlanner::calcSafeRSSDistance();
+    if (is_cipo_present_) {
+        double d_safe = calcSafeRSSDistance();
 
-        // We are a safe distance away from the lead car
-        if (SpeedPlanner::distance >= safe_distance * 1.1 || !SpeedPlanner::is_cipo_present){
+        if (cipo_distance_ >= d_safe * 1.1) {
+            // Comfortable gap — accelerate toward set speed
             acceleration = 1.0;
-        }
-
-        // We are too close to the lead car
-        if(SpeedPlanner::distance >= 0.5 * safe_distance && distance <= 0.9*safe_distance){
+        } else if (cipo_distance_ >= d_safe * 0.5 && cipo_distance_ <= d_safe * 0.9) {
+            // Slightly inside safe bubble — soft brake
             acceleration = -1.0;
-        }
-
-        // Forward Collision Warning and Aggressive Braking
-        if(SpeedPlanner::distance < 0.5 * safe_distance && distance >= 0.25*safe_distance){
+        } else if (cipo_distance_ >= d_safe * 0.25 && cipo_distance_ < d_safe * 0.5) {
+            // Forward Collision Warning zone
             acceleration = -2.5;
-            SpeedPlanner::is_forward_collision_warning = true;
+            is_forward_collision_warning_ = true;
+        } else if (cipo_distance_ < d_safe * 0.25) {
+            // Automatic Emergency Braking zone
+            acceleration = -5.0;
+            is_forward_collision_warning_  = true;
+            is_automatic_emergency_braking_ = true;
         }
-
-        // Automatic Emergency Braking
-        if(SpeedPlanner::distance < 0.25 * safe_distance){
-            acceleration = -5;
-            SpeedPlanner::is_forward_collision_warning = true;
-            SpeedPlanner::is_automatic_emergency_braking = true;
-        }
-    }
-    else{
-        // If there is no lead car
+        // 0.9 ≤ d/d_safe < 1.1 → no change (hold current speed)
+    } else {
+        // No lead car — accelerate
         acceleration = 1.0;
     }
-    
-    // Calculate the new set speed with a 0.5s look-ahead
-    set_speed = SpeedPlanner::ego_speed + acceleration*0.5;
 
-    // Safety check to not exceed speed limit
-    if(set_speed > SpeedPlanner::speed_limit){
-        set_speed = SpeedPlanner::speed_limit;
-    }
+    // 0.5 s look-ahead integration
+    set_speed = ego_speed_ + acceleration * 0.5;
 
-    // Minimum speed of 0 - reverse is not considered
-    if(set_speed < 0){
-        set_speed = 0.0;
-    }
+    // Clamp to [0, speed_limit]
+    set_speed = std::max(0.0, std::min(set_speed, speed_limit_));
 
     return set_speed;
 }
 
-// Check if there is a forward collision warning
- bool SpeedPlanner::getFCWState(){
-    return SpeedPlanner::is_forward_collision_warning;
- }
+bool SpeedPlanner::getFCWState() {
+    return is_forward_collision_warning_;
+}
 
-// Check if there is automatic emergency braking
- bool SpeedPlanner::getAEBState(){
-    return SpeedPlanner::is_automatic_emergency_braking;
- }
+bool SpeedPlanner::getAEBState() {
+    return is_automatic_emergency_braking_;
+}
 
 } // namespace autoware_pov::vision::speed_planning
