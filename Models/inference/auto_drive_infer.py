@@ -9,7 +9,7 @@ class AutoDriveNetworkInfer():
         # print(f'Using {self.device} for inference')
 
         # Load model
-        self.model = torch.load(checkpoint_path + "/best.pt", map_location="cpu", weights_only=False)['model']
+        self.model = torch.load(checkpoint_path, map_location="cpu", weights_only=False)['model']
         self.model = self.model.to(self.device).eval()
 
     def resize_letterbox(self, img: Image.Image):
