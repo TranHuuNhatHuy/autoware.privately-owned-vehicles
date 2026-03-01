@@ -12,10 +12,10 @@ import onnxruntime as ort
 sys.path.append('../../..')
 from Models.inference.auto_speed_infer import AutoSpeedNetworkInfer
 
-color_map = {
-    1: (0, 0, 255),  # red
-    2: (0, 255, 255),  # yellow
-    3: (255, 255, 0)  # cyan
+color_map = {           # Colors (BGR)
+    1: (0, 0, 255),     # Red
+    2: (0, 255, 255),   # Yellow
+    3: (255, 255, 0)    # Cyan
 }
 
 
@@ -129,28 +129,48 @@ def make_visualization(prediction, image):
 
 
 def main():
+
     parser = ArgumentParser()
-    parser.add_argument("-p", "--model_checkpoint_path", dest="model_checkpoint_path",
-                        help="path to pytorch checkpoint (.pt) or ONNX model (.onnx)")
-    parser.add_argument("-i", "--video_filepath", dest="video_filepath",
-                        help="path to input video which will be processed by AutoSpeed")
-    parser.add_argument("-o", "--output_file", dest="output_file",
-                        help="path to output video visualization file, must include output file name")
-    parser.add_argument('-v', "--vis", action='store_true', default=False,
-                        help="flag for whether to show frame by frame visualization while processing is occuring")
+
+    parser.add_argument(
+        "-p", 
+        "--model_checkpoint_path", 
+        dest = "model_checkpoint_path",
+        help = "Path to Pytorch checkpoint (.pt) or ONNX model (.onnx)."
+    )
+    parser.add_argument(
+        "-i", 
+        "--video_filepath", 
+        dest = "video_filepath",
+        help = "Path to input video which will be processed by AutoSpeed.")
+    parser.add_argument(
+        "-o", 
+        "--output_file", 
+        dest = "output_file",
+        help = "Path to output video visualization file, must include output file name.")
+    parser.add_argument(
+        "-v", 
+        "--vis", 
+        action = "store_true", 
+        default = False,
+        help = "Flag for whether to show frame by frame visualization while processing is occuring."
+    )
     args = parser.parse_args()
 
     # Detect model type and load
     model_path = args.model_checkpoint_path
     
-    if model_path.endswith('.onnx'):
-        print('Loading ONNX model...')
-        model = AutoSpeedONNXInfer(onnx_path=model_path)
-        print('ONNX Model Loaded')
-    elif model_path.endswith('.pt') or os.path.isdir(model_path):
-        print('Loading PyTorch model...')
-        model = AutoSpeedNetworkInfer(checkpoint_path=model_path)
-        print('PyTorch Model Loaded')
+    if model_path.endswith(".onnx"):
+        print("Loading ONNX model...")
+        model = AutoSpeedONNXInfer(onnx_path = model_path)
+        print("ONNX model loaded.")
+    elif (
+        (model_path.endswith(".pt")) or 
+        (os.path.isdir(model_path))
+    ):
+        print("Loading PyTorch model...")
+        model = AutoSpeedNetworkInfer(checkpoint_path = model_path)
+        print("PyTorch model loaded.")
     else:
         raise ValueError(f"Unsupported model format: {model_path}. Use .pt or .onnx")
 
@@ -160,15 +180,19 @@ def main():
     cap = cv2.VideoCapture(video_filepath)
 
     # Output filepath
-    output_filepath_obj = args.output_file + '.avi'
+    output_filepath_obj = args.output_file + ".avi"
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # Video writer object
-    writer_obj = cv2.VideoWriter(output_filepath_obj,
-                                 cv2.VideoWriter_fourcc(*"MJPG"), fps, (frame_width, frame_height))
+    writer_obj = cv2.VideoWriter(
+        output_filepath_obj,
+        cv2.VideoWriter_fourcc(*"MJPG"), 
+        fps, 
+        (frame_width, frame_height)
+    )
 
     # Check if video catpure opened successfully
     if (cap.isOpened() == False):
@@ -177,8 +201,9 @@ def main():
         print('Reading video frames')
 
     # Read until video is completed
-    print('Processing started')
+    print("Processing started...")
     while (cap.isOpened()):
+
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret == True:
@@ -197,15 +222,18 @@ def main():
                 display_w = 960
                 h, w, _ = vis_obj.shape
                 display_h = int(h * (display_w / w))
-                vis_display = cv2.resize(vis_obj, (display_w, display_h))
-                cv2.imshow('Prediction Objects', vis_display)
+                vis_display = cv2.resize(
+                    vis_obj, 
+                    (display_w, display_h)
+                )
+                cv2.imshow("Prediction Objects", vis_display)
                 cv2.waitKey(10)
 
             # Writing to video frame
             writer_obj.write(vis_obj)
 
         else:
-            print('Frame not read - ending processing')
+            print("Frame not read - ending processing...")
             break
 
     # When everything done, release the video capture and writer objects
@@ -214,9 +242,9 @@ def main():
 
     # Closes all the frames
     cv2.destroyAllWindows()
-    print('Completed')
+    print("Completed.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 # %%
