@@ -136,7 +136,7 @@ def main():
         "-p", 
         "--model_checkpoint_path", 
         dest = "model_checkpoint_path",
-        help = "Path to Pytorch checkpoint (.pt) or ONNX model (.onnx)."
+        help = "Path to Pytorch checkpoint (.pth) or ONNX model (.onnx)."
     )
     parser.add_argument(
         "-i", 
@@ -165,7 +165,7 @@ def main():
         model = AutoSpeedONNXInfer(onnx_path = model_path)
         print("ONNX model loaded.")
     elif (
-        (model_path.endswith(".pt")) or 
+        (model_path.endswith(".pth")) or 
         (os.path.isdir(model_path))
     ):
         print("Loading PyTorch model...")
