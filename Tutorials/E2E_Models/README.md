@@ -3,6 +3,7 @@
 <div align="center">
 <img src="./assets/tutorial_index.gif" width="50%">
 </div>
+
 ## Description
 
 This directory contains Python notebook tutorials to help you get started with the AI models which we have designed in this project.
