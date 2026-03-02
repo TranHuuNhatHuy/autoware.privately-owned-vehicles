@@ -29,14 +29,14 @@ def main():
     parser.add_argument(
         "-o", 
         "--output_image_dirpath", 
-        dest = "output_file", 
+        dest = "output_image_dirpath", 
         help = "Path to output image visualization directory, containing all results."
     )
 
     args = parser.parse_args()
     # Arranging I/O dirs
     input_image_dirpath = args.input_image_dirpath
-    output_image_dirpath = args.output_file
+    output_image_dirpath = args.output_image_dirpath
     if (not os.path.exists(output_image_dirpath)):
         os.makedirs(output_image_dirpath)
 
@@ -115,7 +115,7 @@ def main():
                 output_image_dirpath,
                 f"{img_id}_result.png"
             )
-            image_vis_obj.save(output_image_filepath)
+            cv2.imwrite(output_image_filepath, image_vis_obj)
 
         else:
             print(f"Skipping non-image file: {filename}")

@@ -48,11 +48,13 @@ def main():
     
     # Create a VideoCapture object and read from input file
     # If the input is taken from the camera, pass 0 instead of the video file name.
-    video_filepath = args.video_filepath
+    video_filepath = args.input_video_filepath
     cap = cv2.VideoCapture(video_filepath)
 
     # Output filepath
-    output_filepath_obj = args.output_file + ".avi"
+    output_filepath_obj = args.output_video_filepath
+    if (not output_filepath_obj.lower().endswith(".avi")):
+        output_filepath_obj = output_filepath_obj + ".avi"
 
     # Video writer object
     writer_obj = cv2.VideoWriter(
