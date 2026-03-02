@@ -39,6 +39,12 @@ models.autospeed.path=/path/to/AutoSpeed.onnx
 models.homography_yaml.path = /path/to/homography_yaml.yaml
 
 # ============================================
+# Pipeline Timing
+# ============================================
+# Target processing rate for capture thread (Hz)
+pipeline.target_fps=10.0
+
+# ============================================
 # Steering Control Parameters
 # ============================================
 # PID controller gains
@@ -50,6 +56,21 @@ steering_control.Kp=0.33
 steering_control.Ki=0.01
 steering_control.Kd=-0.40
 steering_control.Ks=-0.3
+
+# ============================================
+# Longitudinal Control (AutoSpeed + ObjectFinder + SpeedPlanner + PID)
+# ============================================
+# AutoSpeed detection thresholds
+longitudinal.autospeed.conf_thresh=0.5
+longitudinal.autospeed.iou_thresh=0.5
+
+# Fallback ego speed (m/s) when CAN is disabled or invalid
+longitudinal.ego_speed_default_ms=10.0
+
+# Longitudinal PID gains for ideal_speed tracking
+longitudinal.pid.Kp=0.5
+longitudinal.pid.Ki=0.1
+longitudinal.pid.Kd=0.05
 
 # ============================================
 # Output Configuration
