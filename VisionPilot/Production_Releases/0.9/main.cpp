@@ -1909,7 +1909,7 @@ int main(int argc, char** argv)
     const double kLongitudinalKp = config.longitudinal.pid_Kp;
     const double kLongitudinalKi = config.longitudinal.pid_Ki;
     const double kLongitudinalKd = config.longitudinal.pid_Kd;
-
+    
     std::thread t_longitudinal_inference(longitudinalInferenceThread,
                                          std::ref(*autospeed_engine),
                                          std::ref(*object_finder),
