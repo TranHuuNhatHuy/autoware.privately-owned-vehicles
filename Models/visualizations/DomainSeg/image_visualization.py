@@ -6,8 +6,7 @@ import sys
 import numpy as np
 from PIL import Image
 from argparse import ArgumentParser
-sys.path.append('../..')
-from inference.domain_seg_infer import DomainSegNetworkInfer
+from Models.inference.domain_seg_infer import DomainSegNetworkInfer
 
 
 def make_visualization(prediction):
@@ -16,12 +15,15 @@ def make_visualization(prediction):
     shape = prediction.shape
     row = shape[0]
     col = shape[1]
-    vis_predict_object = np.zeros((row, col, 3), dtype = "uint8")
+    vis_predict_object = np.zeros(
+        (row, col, 3), 
+        dtype = "uint8"
+    )
 
     # Assigning background colour
-    vis_predict_object[:,:,0] = 255
-    vis_predict_object[:,:,1] = 93
-    vis_predict_object[:,:,2] = 61
+    vis_predict_object[:, :, 0] = 255
+    vis_predict_object[:, :, 1] = 93
+    vis_predict_object[:, :, 2] = 61
 
     # Getting foreground object labels
     foreground_lables = np.where(prediction == 1.0)
@@ -36,20 +38,32 @@ def make_visualization(prediction):
 def main(): 
 
     parser = ArgumentParser()
-    parser.add_argument("-p", "--model_checkpoint_path", dest="model_checkpoint_path", help="path to pytorch checkpoint file to load model dict")
-    parser.add_argument("-i", "--input_image_filepath", dest="input_image_filepath", help="path to input image which will be processed by DomainSeg")
+
+    parser.add_argument(
+        "-p", 
+        "--model_checkpoint_path", 
+        dest = "model_checkpoint_path", 
+        help = "Path to Pytorch checkpoint file to load model dict."
+    )
+    parser.add_argument(
+        "-i", 
+        "--input_image_filepath", 
+        dest = "input_image_filepath", 
+        help = "Path to input image directory which will be processed by DomainSeg."
+    )
+
     args = parser.parse_args() 
 
     # Saved model checkpoint path
     model_checkpoint_path = args.model_checkpoint_path
-    model = DomainSegNetworkInfer(checkpoint_path=model_checkpoint_path)
-    print('SceneSeg Model Loaded')
+    model = DomainSegNetworkInfer(checkpoint_path = model_checkpoint_path)
+    print("DomainSeg model loaded.")
   
     # Transparency factor
     alpha = 0.5
 
     # Reading input image
-    print('Reading Image')
+    print("Reading image...")
     input_image_filepath = args.input_image_filepath
     frame = cv2.imread(input_image_filepath, cv2.IMREAD_COLOR)
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -57,16 +71,24 @@ def main():
     image_pil = image_pil.resize((640, 320))
 
     # Run inference and create visualization
-    print('Running Inference and Creating Visualization')
+    print("Running inference and creating visualization...")
     prediction = model.inference(image_pil)
     vis_obj = make_visualization(prediction)
 
     # Resize and display visualization
-    vis_obj = cv2.resize(vis_obj, (frame.shape[1], frame.shape[0]))
-    image_vis_obj = cv2.addWeighted(vis_obj, alpha, frame, 1 - alpha, 0)
-    cv2.imshow('Prediction Objects', image_vis_obj)
+    vis_obj = cv2.resize(
+        vis_obj, 
+        (frame.shape[1], frame.shape[0])
+    )
+    image_vis_obj = cv2.addWeighted(
+        vis_obj, alpha, 
+        frame, 1 - alpha, 
+        0
+    )
+    cv2.imshow("Prediction objects", image_vis_obj)
     cv2.waitKey(0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
 # %%
