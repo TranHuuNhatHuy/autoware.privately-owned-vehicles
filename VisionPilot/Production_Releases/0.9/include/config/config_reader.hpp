@@ -50,6 +50,19 @@ struct Config {
         bool enabled;
         std::string interface_name;
     } can_interface;
+
+    // Longitudinal & pipeline tuning
+    struct {
+        float  autospeed_conf_thresh;   // Detection confidence threshold
+        float  autospeed_iou_thresh;    // NMS IoU threshold
+        double ego_speed_default_ms;    // Fallback ego speed when CAN is unavailable
+        double pid_Kp;                  // Longitudinal PID gains
+        double pid_Ki;
+        double pid_Kd;
+    } longitudinal;
+
+    // Global capture frame rate (Hz)
+    double capture_fps;
 };
 
 class ConfigReader {
