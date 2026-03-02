@@ -1,6 +1,6 @@
 # Tutorials for Autoware VisionPilot's End-to-End Models
 
-<img src="./assets/tutorial_index.gif" width="100%">
+<img src="./assets/tutorial_index.gif" width="50%">
 
 ## Description
 
