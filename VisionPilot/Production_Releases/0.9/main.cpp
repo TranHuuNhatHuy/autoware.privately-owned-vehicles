@@ -1769,8 +1769,8 @@ int main(int argc, char** argv)
     // Load longitudinal config (using same provider/precision as lateral for now)
     std::string autospeed_model_path = config.models.autospeed_path;
     std::string homography_yaml_path = config.models.homography_yaml_path;
-    float autospeed_conf_thresh = 0.5f;  // TODO: Add to config
-    float autospeed_iou_thresh = 0.5f;   // TODO: Add to config
+    float autospeed_conf_thresh = config.longitudinal.autospeed_conf_thresh;
+    float autospeed_iou_thresh  = config.longitudinal.autospeed_iou_thresh;
     
     std::cout << "\n========================================" << std::endl;
     std::cout << "LONGITUDINAL PIPELINE INITIALIZATION" << std::endl;
@@ -1891,7 +1891,8 @@ int main(int argc, char** argv)
     // Launch threads - single capture broadcasts to both pipelines via double buffer
     std::thread t_capture(captureThread, source, is_camera, 
                           std::ref(shared_frame_buffer),
-                          std::ref(metrics), std::ref(running), can_interface.get(), 10.0);  // 10 FPS
+                          std::ref(metrics), std::ref(running),
+                          can_interface.get(), config.capture_fps);
     
     // Lateral pipeline (reads from shared buffer)
     std::thread t_lateral_inference(lateralInferenceThread, std::ref(engine),
@@ -1902,13 +1903,12 @@ int main(int argc, char** argv)
                             autosteer_engine.get());
 
     // Longitudinal pipeline (reads from shared buffer, parallel execution)
-    // TODO: replace 10.0 with can_interface->getState().speed_kmph (convert to m/s)
-    //       once CAN bus speed is validated.
-    constexpr double kStaticEgoSpeedMs = 10.0;
-    // Longitudinal PID controller gains
-    constexpr double kLongitudinalKp = 0.5;  // Proportional gain
-    constexpr double kLongitudinalKi = 0.1;  // Integral gain
-    constexpr double kLongitudinalKd = 0.05; // Derivative gain
+    // NOTE: ego_speed_default_ms is only used when CAN speed is unavailable.
+    const double kStaticEgoSpeedMs = config.longitudinal.ego_speed_default_ms;
+    // Longitudinal PID controller gains (configurable)
+    const double kLongitudinalKp = config.longitudinal.pid_Kp;
+    const double kLongitudinalKi = config.longitudinal.pid_Ki;
+    const double kLongitudinalKd = config.longitudinal.pid_Kd;
 
     std::thread t_longitudinal_inference(longitudinalInferenceThread,
                                          std::ref(*autospeed_engine),
