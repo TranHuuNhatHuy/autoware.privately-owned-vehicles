@@ -53,7 +53,38 @@ Config ConfigReader::loadFromFile(const std::string& config_path) {
     
     config.can_interface.enabled = parseBool(props["can_interface.enabled"]);
     config.can_interface.interface_name = props["can_interface.interface_name"];
-    
+
+    // Longitudinal & pipeline tuning (with sensible defaults if keys are missing)
+    config.longitudinal.autospeed_conf_thresh =
+        props.find("longitudinal.autospeed.conf_thresh") != props.end()
+            ? parseFloat(props["longitudinal.autospeed.conf_thresh"])
+            : 0.5f;
+    config.longitudinal.autospeed_iou_thresh =
+        props.find("longitudinal.autospeed.iou_thresh") != props.end()
+            ? parseFloat(props["longitudinal.autospeed.iou_thresh"])
+            : 0.5f;
+    config.longitudinal.ego_speed_default_ms =
+        props.find("longitudinal.ego_speed_default_ms") != props.end()
+            ? parseDouble(props["longitudinal.ego_speed_default_ms"])
+            : 10.0;
+    config.longitudinal.pid_Kp =
+        props.find("longitudinal.pid.Kp") != props.end()
+            ? parseDouble(props["longitudinal.pid.Kp"])
+            : 0.5;
+    config.longitudinal.pid_Ki =
+        props.find("longitudinal.pid.Ki") != props.end()
+            ? parseDouble(props["longitudinal.pid.Ki"])
+            : 0.1;
+    config.longitudinal.pid_Kd =
+        props.find("longitudinal.pid.Kd") != props.end()
+            ? parseDouble(props["longitudinal.pid.Kd"])
+            : 0.05;
+
+    config.capture_fps =
+        props.find("pipeline.target_fps") != props.end()
+            ? parseDouble(props["pipeline.target_fps"])
+            : 10.0;
+
     return config;
 }
 
