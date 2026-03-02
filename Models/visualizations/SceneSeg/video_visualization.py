@@ -3,7 +3,6 @@
 #! /usr/bin/env python3
 import os
 import cv2
-import sys
 import numpy as np
 from PIL import Image
 from argparse import ArgumentParser
@@ -73,11 +72,14 @@ def main():
     
   # Create a VideoCapture object and read from input file
   # If the input is taken from the camera, pass 0 instead of the video file name.
-  video_filepath = args.video_filepath
+  video_filepath = args.input_video_filepath
   cap = cv2.VideoCapture(video_filepath)
 
   # Output filepath
-  output_filepath_obj = args.output_file + ".avi"
+  output_filepath_obj = args.output_video_filepath
+  output_dir = os.path.dirname(output_filepath_obj)
+  if ((output_dir != "") and (not os.path.exists(output_dir))):
+    os.makedirs(output_dir)
   
   fps = cap.get(cv2.CAP_PROP_FPS)
   # Video writer object

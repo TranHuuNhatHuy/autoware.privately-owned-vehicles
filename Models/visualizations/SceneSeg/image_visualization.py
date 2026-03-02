@@ -3,7 +3,6 @@
 #! /usr/bin/env python3
 import os
 import cv2
-import sys
 import numpy as np
 from PIL import Image
 from argparse import ArgumentParser
@@ -128,7 +127,7 @@ def main():
                 output_image_dirpath,
                 f"{img_id}_data.png"
             )
-            image_vis_obj.save(output_image_filepath)
+            cv2.imwrite(output_image_filepath, image_vis_obj)
 
         else:
             print(f"Skipping non-image file: {filename}")
