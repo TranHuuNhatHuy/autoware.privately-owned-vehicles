@@ -6,12 +6,7 @@ VisionPilot demos with Open AD Kit containers.
 
 - Docker
 
-- Download the [Traffic Driving video](https://drive.google.com/file/d/1_mFCpsKkBrotVUiv_OIZi1B6Fd3UXUG3/view?usp=drive_link) to use as input for the demos and place it in the `Test` directory with the name `traffic-driving.mp4`. Below script will do this for you:
-
-    ```bash
-    mkdir -p Test
-    curl "https://drive.usercontent.google.com/download?id=1_mFCpsKkBrotVUiv_OIZi1B6Fd3UXUG3&confirm=xxx" -o Test/traffic-driving.mp4
-    ```
+- You will find an example video in the Test folder [Traffic Driving video](https://drive.google.com/file/d/1_mFCpsKkBrotVUiv_OIZi1B6Fd3UXUG3/view?usp=drive_link) to use as input for the demos.
 
 ### Building the Docker image from scratch
 
