@@ -4,9 +4,7 @@ VisionPilot demos with Open AD Kit containers.
 
 ## Prerequisites
 
-- Docker
-
-- You will find an example video in the Test folder [Traffic Driving video](https://drive.google.com/file/d/1_mFCpsKkBrotVUiv_OIZi1B6Fd3UXUG3/view?usp=drive_link) to use as input for the demos.
+**Docker** - You will find an example video in the Test folder called ['traffic-driving.mp4'](https://drive.google.com/file/d/1_mFCpsKkBrotVUiv_OIZi1B6Fd3UXUG3/view?usp=drive_link) which is the default video that will be used as input for the demos. You can add other test videos to the Test folder if you wish, however, you would need to update the mount path in each AI model's launch script to point to any additional videos.
 
 ### Building the Docker image from scratch
 
