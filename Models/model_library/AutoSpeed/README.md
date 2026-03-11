@@ -6,6 +6,27 @@ Maintaining the vehicle speed and keep safe distance from the vehicle in front i
 determine the closest inpath object AutoSpeed network is used. This network is inspired by YOLOv11 architecture, with
 substituted c3K2 by a new block ASC block to improve CIPO object detection.
 
+The AutoSpeed model detects all foreground objects and classifies into three categories depending on the object's position with respect to the predicted future driving path of the ego-car:
+
+- objects directly within the future driving path of the ego-car 
+- objects cutting-in/cutting-out of the future driving path of the ego-car
+- objects outside of the future driving path of the ego-car
+
+We use an inverse-perspective mapping to convert the image pixels to world coordinates. We take the bottom/centre point of the in-path object's bounding box and measure its real-world distance through the inverse-perspective mapping. A Kalman filter is separately used to track the distance and infer the speed of this object.
+
+You can find more information about how we calculate the inverse-perspective mapping for Waymo Open Dataset here: https://github.com/autowarefoundation/autoware_vision_pilot/tree/main/VisionPilot/Middleware_Recipes/Calibration
+
+### You can see our object tracking implementation here:
+
+**src**:  https://github.com/autowarefoundation/autoware_vision_pilot/tree/main/VisionPilot/Production_Releases/0.9/src/object_tracking
+
+**include**:
+https://github.com/autowarefoundation/autoware_vision_pilot/tree/main/VisionPilot/Production_Releases/0.9/include/object_tracking 
+
+## Watch the explainer video
+Please click the video link to play - [***Video link***](https://drive.google.com/file/d/1kUMtZWmU3vQ6ApNk3q1dbS-vAUUFKYut/view?usp=sharing)
+
+
 <img src="../../../Media/AutoSpeed_GIF_2.gif" width="100%">
 
 ### Performance Results
