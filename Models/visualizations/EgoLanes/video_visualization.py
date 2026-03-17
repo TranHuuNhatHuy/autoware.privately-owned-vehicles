@@ -60,6 +60,8 @@ def main():
     
     # Visualization preparation
     output_filepath_data = args.output_video_path
+    if (not os.path.exists(os.path.dirname(output_filepath_data))):
+        os.makedirs(os.path.dirname(output_filepath_data))
     writer_data = cv2.VideoWriter(
         output_filepath_data,
         cv2.VideoWriter_fourcc(*"MJPG"), 

@@ -44,6 +44,7 @@ include_directories(
     ${GSTREAMER_INCLUDE_DIRS}
     ${GSTREAMER_APP_INCLUDE_DIRS}
     ../../common/include
+    ../../common/backends
 )
 
 # AutoSpeed ONNX Runtime backend

@@ -4,8 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 from argparse import ArgumentParser
-sys.path.append('../..')
-from inference.ego_lanes_infer import EgoLanesNetworkInfer
+from Models.inference.ego_lanes_infer import EgoLanesNetworkInfer
 
     
 FRAME_INF_SIZE = (640, 320)
@@ -125,7 +124,7 @@ def main():
     model = EgoLanesNetworkInfer(
         checkpoint_path = model_checkpoint_path
     )
-    print("AutoSteer model successfully loaded!")
+    print("EgoLanes model successfully loaded!")
 
     # Process through input image dir
     for filename in sorted(os.listdir(input_image_dirpath)):

@@ -1,116 +1,168 @@
-# VisionPilot 0.9 - L2+ Highway Pilot Production Release
+# VisionPilot 0.9 – Lateral + Longitudinal Release
 
-This release enables autonomous steering using the EgoLanes and AutoSteer neural networks to detect lane lines determine
-steering angle and navigate roads at a predetermined, desired speed.
+This release runs **lateral control** (EgoLanes + AutoSteer + PID) and **longitudinal tracking** (AutoSpeed + ObjectFinder + SpeedPlanner + longitudinal PID) in parallel, and publishes all outputs via POSIX shared memory for external consumers.
 
-This includes autonomous lane keeping with cruise control.
+Installation Ubuntu 22.04 X86 System
 
-## C++ Inference Pipeline
+## 1. Install ONNX Runtime
 
-Multi-threaded lane detection inference system with ONNX Runtime backend.
-
-### Quick Start
-
-[Download](https://github.com/microsoft/onnxruntime/releases) ONNX Runtime for the appropriate CUDA version and OS.
-
-**Set ONNX Runtime path**
-
-Unpack the ONNX runtime archive and set `ONNXRUNTIME_ROOT` to point to the directory as for example:
+**Skip this step if you have  already installed onnxruntime-linux-x64-gpu-1.22.0.tgz**
 
 ```bash
-export ONNXRUNTIME_ROOT=/path/to/onnxruntime-linux-x64-gpu-1.22.0
+cd Downloads
+
+wget https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64-gpu-1.22.0.tgz
+tar -xvzf onnxruntime-linux-x64-gpu-1.22.0.tgz
+cd onnxruntime-linux-x64-gpu-1.22.0
+cp -r onnxruntime-linux-x64-gpu-1.22.0 $HOME/ #or any other folder you like to have
+
+export ONNXRUNTIME_ROOT=/home/YourUser/onnxruntime-linux-x64-gpu-1.22.0 #if you add cp it to another folder, change it to this folder
+export LD_LIBRARY_PATH=$ONNXRUNTIME_ROOT/lib:$LD_LIBRARY_PATH
+
+permanent
+echo 'export ONNXRUNTIME_ROOT=/home/YourUser/onnxruntime-linux-x64-gpu-1.22.0' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-_Note_: For Jetson AGX download appropriate ONNX runetime from [Jetson Zoo](https://elinux.org/Jetson_Zoo#ONNX_Runtime).
+## 2. Install TensorRT 
 
-**Build**
-
-[Download](https://github.com/autowarefoundation/autoware.privately-owned-vehicles.git) VisionPilot source code.
-Navigate to `VisionPilot/Production_Releases/0.5` subdirectory  which looks like:
-
-```
-0.5/
-├── src/
-│   ├── inference/          # Pure inference backend (no visualization)
-│   │   ├── onnxruntime_session.cpp/hpp
-│   │   ├── onnxruntime_engine.cpp/hpp
-│   │   └── README.md
-│   └── visualization/      # Visualization module (separate)
-│       └── draw_lanes.cpp/hpp
-├── scripts/                # Python utilities
-├── main.cpp                # Multi-threaded pipeline
-├── CMakeLists.txt          # Build configuration
-└── run.sh                  # Runner script
+### Check if TensorRT is installed
+```bash
+dpkg -l | grep tensorrt
+or
+dpkg -l | grep nvinfer
 ```
 
-and create `build` subdirectory:
+### If you don't see a TensorRT version printed, then install TensorRT
+
+**Visit the download page and download the correct package for your Nvidia GPU:**
+https://developer.nvidia.com/tensorrt
+
+**Once it is downloaded, enter the download folder:**
+```bash
+cd ~/Downloads
+```
+
+**Install TensorRT**
+```bash
+# adapt to your downloaded version of TensorRT
+tar -xvzf TensorRT-10.x.x.Linux.x86_64-gnu.cuda-12.x.tar.gz 
+```
+
+**Place in correct folder and export TensorRT**
+```bash
+sudo mv TensorRT-10.0.1.6 /opt/tensorrt
+
+export TENSORRT_ROOT=/opt/tensorrt
+export LD_LIBRARY_PATH=$TENSORRT_ROOT/lib:$LD_LIBRARY_PATH
+
+# or permanent
+
+echo 'export TENSORRT_ROOT=/opt/tensorrt' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=$TENSORRT_ROOT/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+
+cd /opt/tensorrt/python
+pip install tensorrt-*.whl
+```
+
+**Test to ensure TensorRT has been installed correctly**
+```bash
+python # or python3
+import tensorrt as trt
+print(trt.__version__)
+```
+
+## 3. Build
+
+From `Production_Releases/0.9`:
 
 ```bash
-mkdir -p build && cd build
-```
-
-**Build Options**
-
-The pipeline supports two inference backends:
-
-1. **ONNX Runtime (default)**: Uses ONNX Runtime with TensorRT execution provider
-   ```bash
-   cmake -DSKIP_ORT=OFF ../
-   make -j$(nproc)
-   ```
-   Requires: `ONNXRUNTIME_ROOT` environment variable set
-
-2. **TensorRT Direct (SKIP_ORT=ON)**: Uses TensorRT directly, bypassing ONNX Runtime
-   ```bash
-   cmake -DSKIP_ORT=ON ../
-   make -j$(nproc)
-   ```
-   Requires: CUDA and TensorRT installed (searches common locations or set `TENSORRT_ROOT`)
-   
-   **Use this option when:**
-   - Building on Jetson where ONNX Runtime GPU builds are problematic
-   - You want to avoid ONNX Runtime dependency
-   - You only need TensorRT inference
-
-**Default Build (ONNX Runtime)**
-
-```bash
-cmake ../
+mkdir -p build
+cd build
+cmake ..      # ONNX Runtime + TensorRT (uses $ONNXRUNTIME_ROOT)
 make -j$(nproc)
 cd ..
 ```
 
-**Configure and Run**
+Ensure:
+- `ONNXRUNTIME_ROOT` points to your ONNX Runtime GPU install.
+- TensorRT/CUDA are installed.
 
+## 4. Download the AI models
+
+**Create directories where the AI models will be stored**
 ```bash
-# Edit run.sh to set paths and options
-./run.sh
+mkdir -p autoware_projects/weights
+cd autoware_projects/weights
+mkdir AutoSpeed
+mkdir Autosteer
+mkdir EgoLanes
 ```
 
-### Configuration (run.sh)
+**Download and copy the ONNX models to corresponding folders**
 
-- `VIDEO_PATH`: Input video file
-- `MODEL_PATH`: ONNX model (.onnx)
-- `PROVIDER`: cpu or tensorrt (ignored when `SKIP_ORT=ON`, always uses TensorRT)
-- `PRECISION`: fp32 or fp16 (TensorRT only)
-- `DEVICE_ID`: GPU device ID
-- `CACHE_DIR`: TensorRT engine cache directory
-- `THRESHOLD`: Segmentation threshold (default: 0.0)
-- `MEASURE_LATENCY`: Enable performance metrics
-- `ENABLE_VIZ`: Enable visualization window
-- `SAVE_VIDEO`: Save annotated output video
-- `OUTPUT_VIDEO`: Output video path
+AutoSpeed: https://drive.google.com/file/d/1Zhe8uXPbrPr8cvcwHkl1Hv0877HHbxbB/view?usp=drive_link
 
-**Note**: When building with `SKIP_ORT=ON`, the `PROVIDER` argument is ignored and TensorRT is always used directly.
+AutoSteer: Please contact admin at zain.khawaja@autoware.org
 
-### Performance
+EgoLanes: https://drive.google.com/file/d/1b4jAoH6363ggTgVU0b6URbFfcOL3-r1Q/view?usp=sharing
 
-- **CPU**: 20-40ms per frame
-- **TensorRT FP16**: 2-5ms per frame (200-500 FPS capable)
 
-### Model Output
+## 5. Configure (`visionpilot.conf`)
 
-3-channel lane segmentation (320x640):
-- Channel 0: Ego left lane (blue)
-- Channel 1: Ego right lane (magenta)
-- Channel 2: Other lanes (green)
+Edit `visionpilot.conf` in this directory:
+
+- **Mode & source**
+  - `mode=video` or `mode=camera`
+  - `source.video.path=/path/to/video.mp4`
+- **Models**
+  - `models.egolanes.path=.../Egolanes_fp32.onnx`
+  - `models.autosteer.path=.../AutoSteer_FP32.onnx`
+  - `models.autospeed.path=.../AutoSpeed_n.onnx`
+  - `models.homography_yaml.path=.../homography_2.yaml`
+- **Timing**
+  - `pipeline.target_fps=10.0`
+- **Lateral PID**
+  - `steering_control.Kp/Ki/Kd/Ks`
+- **Longitudinal**
+  - `longitudinal.autospeed.conf_thresh`
+  - `longitudinal.autospeed.iou_thresh`
+  - `longitudinal.ego_speed_default_ms` (used when CAN is disabled/invalid)
+  - `longitudinal.pid.Kp/Ki/Kd`
+- **CAN**
+  - `can_interface.enabled=true/false`
+  - `can_interface.interface_name=can0`
+
+## 6. Run
+
+```bash
+./run_final.sh           # uses /usr/share/visionpilot/visionpilot.conf if present
+./run_final.sh ./visionpilot.conf   # explicit config path
+```
+
+You should see:
+- EgoLanes + AutoSteer lateral pipeline initialization
+- AutoSpeed + ObjectFinder longitudinal initialization
+- “Lateral and Longitudinal pipelines running in PARALLEL…”
+
+## 7. Shared Memory Outputs
+
+The process publishes a single shared-memory segment with all outputs:
+
+- Name: `/visionpilot_state`
+- Struct: `VisionPilotState` (see `include/publisher/visionpilot_shared_state.hpp`)
+  - Lateral: steering angles, PathFinder CTE/yaw/curvature, lane departure flag
+  - Longitudinal: CIPO distance/velocity, RSS safe distance, ideal speed, FCW/AEB flags, longitudinal control effort
+  - CAN/ego: speed, steering angle, validity
+
+### Quick test reader
+
+From `0.9`:
+
+```bash
+./tools/shm_reader          # live view while visionpilot is running
+./tools/shm_reader --once   # single snapshot
+```
+
+If VisionPilot is running correctly you will see frame IDs increasing and CIPO / steering values updating. When VisionPilot stops, `shm_reader` will show the last published frame until the segment is unlinked.
