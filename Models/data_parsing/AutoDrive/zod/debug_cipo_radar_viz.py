@@ -105,7 +105,7 @@ def get_radar_xy_and_clusters(radar_data, ts_ns, z_min=-0.5, z_max=1.0, range_sc
     return xy, labels, pts_f, clusters
 
 
-def path_points_from_curvature(curvature_inv_m: float, max_dist: float = 80, n_pts: int = 80):
+def path_points_from_curvature(curvature_inv_m: float, max_dist: float = 100, n_pts: int = 100):
     """Ackermann bicycle model: circular arc. Returns list of (x,y) in radar frame (x forward, y left)."""
     k = curvature_inv_m
     if abs(k) < 1e-6:
@@ -221,10 +221,17 @@ def find_nearest_cluster_lateral(clusters, azimuth_radar, lat_buffer_m=0.5):
     return clusters[best_idx], best_idx
 
 
-def draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, scale=6, x_range=(0, 100), y_range=(-30, 30), lat_buffer_m=0.5, curvature_inv_m=None, path_only=False):
+_BEV_X_RANGE = (0, 150)   # forward range in meters (radar ~150m)
+_BEV_Y_RANGE = (-40, 40)  # lateral range in meters
+
+
+def draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, scale=6, x_range=None, y_range=None, lat_buffer_m=0.5, curvature_inv_m=None, path_only=False):
     """
     path_only: when True (no CIPO), draw buffer around curvature path only, not FOV/azimuth ray.
+    x_range: (min, max) forward range in m. Default (0, 150) for full radar range.
     """
+    x_range = x_range or _BEV_X_RANGE
+    y_range = y_range or _BEV_Y_RANGE
     bev_h = int((x_range[1] - x_range[0]) * scale)
     bev_w = int((y_range[1] - y_range[0]) * scale)
     bev = np.ones((bev_h, bev_w, 3), dtype=np.uint8) * 28
@@ -235,11 +242,11 @@ def draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, scale=6, x_range=
         return np.clip(row, 0, bev_h - 1), np.clip(col, 0, bev_w - 1)
 
     # Grid
-    for x in range(0, 101, 20):
+    for x in range(0, int(x_range[1]) + 1, 25):
         r, c = to_pixel(x, y_range[0])
         cv2.line(bev, (c, r), (bev_w - 1, r), (55, 55, 55), 1)
         cv2.putText(bev, f"{x}m", (5, r + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (130, 130, 130), 1)
-    for y in range(-30, 31, 10):
+    for y in range(y_range[0], y_range[1] + 1, 20):
         r, c = to_pixel(x_range[0], y)
         cv2.line(bev, (c, 0), (c, bev_h - 1), (55, 55, 55), 1)
 
@@ -324,7 +331,7 @@ def draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, scale=6, x_range=
     cv2.circle(bev, (c0, r0), 10, (255, 255, 255), 2)
 
     # Labels
-    cv2.putText(bev, "Radar BEV (z:-0.5~1m)", (5, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+    cv2.putText(bev, f"Radar BEV 0-{x_range[1]}m (z:-0.5~1m)", (5, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
     if path_only:
         cv2.putText(bev, "path only (no CIPO)", (5, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100, 200, 200), 1)
     else:
@@ -429,7 +436,8 @@ def main():
                 radar_data, rec["radar_timestamp_ns"], curvature, pts_f,
                 lat_buffer_m=_LAT_BUFFER_PATH_M,
             )
-            bev = draw_bev(xy, labels, pts_f, matched_path, 0, lat_buffer_m=_LAT_BUFFER_PATH_M, curvature_inv_m=curvature, path_only=True)
+            bev = draw_bev(xy, labels, pts_f, matched_path, 0, x_range=_BEV_X_RANGE, y_range=_BEV_Y_RANGE,
+                          lat_buffer_m=_LAT_BUFFER_PATH_M, curvature_inv_m=curvature, path_only=True)
             lines = ["No CIPO (L1/L2)", f"path k={curvature:.4f}"]
             if cluster_path:
                 lines.extend([f"path fallback: {cluster_path['range']:.1f}m", f"speed: {cluster_path['range_rate']:.1f} m/s"])
@@ -459,7 +467,8 @@ def main():
             draw_text_panel(img, lines, y0=35)
 
             curvature = rec.get("curvature_inv_m")
-            bev = draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, lat_buffer_m=_LAT_BUFFER_M, curvature_inv_m=curvature)
+            bev = draw_bev(xy, labels, pts_f, matched_indices, az_radar_deg, x_range=_BEV_X_RANGE, y_range=_BEV_Y_RANGE,
+                          lat_buffer_m=_LAT_BUFFER_M, curvature_inv_m=curvature)
 
         # Resize and stack
         h, w = img.shape[:2]
