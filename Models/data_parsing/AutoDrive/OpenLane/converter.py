@@ -177,14 +177,14 @@ def expand_training_set(dataset_dir, fract=0.25):
                 print(f"Failed to move {image.name}: {e}")
 
 
-def convert(dataset_dir):
+def convert(input_ds_dir, output_ds_dir):
     # convert training data
-    input_training_dir = dataset_dir + "/images/training"
-    output_training_dir = dataset_dir + "/images/train"
+    input_training_dir = input_ds_dir + "/images/training"
+    output_training_dir = output_ds_dir + "/images/train"
     process_images(input_training_dir, output_training_dir)
 
-    input_dir = dataset_dir + "/labels/training"
-    output_dir = dataset_dir + "/labels/train"
+    input_dir = input_ds_dir + "/labels/training"
+    output_dir = output_ds_dir + "/labels/train"
     convert_labels(input_dir, output_dir)
 
     # input_dir = dataset_dir + "/labels_lane3d/training"
@@ -192,12 +192,12 @@ def convert(dataset_dir):
     # convert_lane3d_labels(input_dir, output_dir)
 
     # convert validation data
-    input_dir = dataset_dir + "/images/validation"
-    output_dir = dataset_dir + "/images/val"
+    input_dir = input_ds_dir + "/images/validation"
+    output_dir = output_ds_dir + "/images/val"
     process_images(input_dir, output_dir)
 
-    input_dir = dataset_dir + "/labels/validation"
-    output_dir = dataset_dir + "/labels/val"
+    input_dir = input_ds_dir + "/labels/validation"
+    output_dir = output_ds_dir + "/labels/val"
     convert_labels(input_dir, output_dir)
 
     # input_dir = dataset_dir + "/labels_lane3d/validation"
@@ -207,9 +207,11 @@ def convert(dataset_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dataset_dir", help="dataset directory")
+    parser.add_argument("-i", "--input_ds_dir", help="Input dataset directory")
+    parser.add_argument("-o", "--output_ds_dir", help="Output dataset directory")
     args = parser.parse_args()
 
-    dataset_dir = args.dataset_dir
-    convert(dataset_dir)
-    # expand_training_set(dataset_dir)
+    input_ds_dir = args.input_ds_dir
+    output_ds_dir = args.output_ds_dir
+    convert(input_ds_dir, output_ds_dir)
+    expand_training_set(output_ds_dir)
