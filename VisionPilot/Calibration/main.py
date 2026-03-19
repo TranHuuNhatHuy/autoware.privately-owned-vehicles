@@ -137,3 +137,31 @@ def get_relative_rotation(
     R_rel = R_s @ np.linalg.inv(R_i)
 
     return R_rel
+
+
+def simulate_vertical_translation(
+        intrinsics:     np.ndarray,
+        H_i:            int,
+        H_s:            int
+):
+    """
+    Simulate vertical translation by scaling the vertical focal
+    length of target intrinsics matrix, aka scaling the image
+    height.
+
+    Parameters:
+        - intrinsics: intrinsics matrix of inference pose.
+        - H_i: height of inference pose image, in pixels.
+        - H_s: height of standard pose image, in pixels.
+
+    Returns:
+        - modified_intrinsics: intrinsics matrix after simulating
+                               vertical translation.
+
+    """
+
+    scale_factor = H_s / H_i
+    modified_intrinsics = intrinsics.copy()
+    modified_intrinsics[1, 1] *= scale_factor
+
+    return modified_intrinsics
