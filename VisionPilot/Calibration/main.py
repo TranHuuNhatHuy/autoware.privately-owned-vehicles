@@ -114,3 +114,26 @@ def get_standard_intrinsics(
     )
 
     return K_s
+
+
+def get_relative_rotation(
+        R_i:    np.ndarray,
+        R_s:    np.ndarray
+):
+    """
+    Compute relative rotation matrix between the inference pose
+    and the standard pose.
+
+    Parameters:
+        - R_i: rotation matrix of inference pose.
+        - R_s: rotation matrix of standard pose.
+
+    Returns:
+        - R_rel: relative rotation matrix for warping inference pose
+                 to match standard pose perspective.
+
+    """
+
+    R_rel = R_s @ np.linalg.inv(R_i)
+
+    return R_rel
