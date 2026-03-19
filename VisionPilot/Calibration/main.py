@@ -150,8 +150,8 @@ def simulate_vertical_translation(
     height.
 
     Parameters:
-        - intrinsics: intrinsics matrix of inference pose.
-        - H_i: height of inference pose image, in pixels.
+        - intrinsics: intrinsics matrix of standard pose.
+        - H_i: height of standard pose image, in pixels.
         - H_s: height of standard pose image, in pixels.
 
     Returns:
@@ -165,3 +165,40 @@ def simulate_vertical_translation(
     modified_intrinsics[1, 1] *= scale_factor
 
     return modified_intrinsics
+
+
+def end_to_end_calibration(
+        inference_image:        np.ndarray,
+        modified_intrinsics:    np.ndarray,
+        R_rel:                  np.ndarray,
+        K_i:                    np.ndarray,
+        w_s:                    int,
+        h_s:                    int
+):
+    """
+    Perform end-to-end calibration by warping the inference image
+    using the relative rotation and modified intrinsics, to match
+    the standard pose perspective.
+
+    Parameters:
+        - inference_image: inference image (already undistorted).
+        - modified_intrinsics: intrinsics matrix after simulating
+                               vertical translation.
+        - R_rel: relative rotation matrix for warping inference
+                               pose to match standard pose.
+        - K_i: intrinsics matrix of inference pose.
+        - w_s: width of standard pose image, in pixels.
+        - h_s: height of standard pose image, in pixels.
+
+    """
+
+    H_warp = modified_intrinsics @ R_rel @ np.linalg.inv(K_i)
+
+    calibrated_image = cv2.warpPerspective(
+        inference_image,
+        H_warp,
+        (w_s, h_s),
+        borderMode = cv2.BORDER_REPLICATE
+    )
+
+    return calibrated_image
