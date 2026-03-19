@@ -43,7 +43,7 @@ _LAT_BUFFER_M = 0.5        # ±0.5m lateral buffer for CIPO-radar (Scenario 1) a
 _LAT_BUFFER_PATH_M = 1.0   # no-CIPO path search: ±1.0m lateral from curvature path
 _MIN_ABS_SPEED_WORLD_MS = 0.5   # Scenario 3: |range_rate + ego_speed| > 0.5 → moving object
 _MIN_ABS_RANGE_RATE_FALLBACK = 0.5  # fallback when ego_speed not available
-_MAX_RANGE_M = 150.0        # maximum radar search range (m) - ignore anything beyond 150m
+_MAX_RANGE_M = 200.0        # maximum radar search range (m) - radar useful up to ~200m
 
 # Volvo XC90 (ZOD vehicle) steering geometry - same as step1_timestamp_association.py
 _STEERING_COLUMN_RATIO = 16.8  # steering wheel deg / tyre deg
@@ -110,8 +110,14 @@ def _polar_vel_dist(a, b, range_scale=4.0, lat_buffer=0.5, vel_scale=1.5):
     return np.sqrt((dr / range_scale) ** 2 + (d_lateral / lat_buffer) ** 2 + (dv / vel_scale) ** 2)
 
 
+_MIN_ABS_RR_SINGLE_PT = 0.5  # unclustered point is "moving" if |range_rate| > 0.5 m/s
+
 def get_radar_clusters(radar_data, ts_ns: int, z_min=-0.5, z_max=1.0, range_scale=4.0, lat_buffer=0.5, vel_scale=1.5, min_samples=2, max_range_m=_MAX_RANGE_M):
-    """Filter z (-0.5 to 1m: ground to car roof) and range (≤max_range_m), cluster with DBSCAN."""
+    """
+    Filter z (-0.5 to 1m: ground to car roof) and range (≤max_range_m), cluster with DBSCAN.
+    After DBSCAN, any unclustered point with |range_rate| > _MIN_ABS_RR_SINGLE_PT is promoted
+    to its own single-point cluster (moving object missed by density clustering).
+    """
     pts = radar_data[radar_data["timestamp"] == ts_ns]
     if len(pts) == 0:
         return []
@@ -137,6 +143,15 @@ def get_radar_clusters(radar_data, ts_ns: int, z_min=-0.5, z_max=1.0, range_scal
             "range": float(np.mean(pts_f["radar_range"][m])),
             "range_rate": float(np.mean(pts_f["range_rate"][m])),
         })
+    # Promote moving unclustered points to single-point clusters
+    unclustered = labels < 0
+    for i in np.where(unclustered)[0]:
+        if abs(rr[i]) > _MIN_ABS_RR_SINGLE_PT:
+            clusters.append({
+                "azimuth": float(az[i]),
+                "range": float(rg[i]),
+                "range_rate": float(rr[i]),
+            })
     return clusters
 
 
@@ -517,7 +532,7 @@ def main():
 
         if cluster is None:
             # 1. First: Track from previous frames (temporal continuity)
-            TRACK_LOOKBEHIND = 4
+            TRACK_LOOKBEHIND = 10
             AZ_TOL_DEG = 4.0
             MAX_GAP_S = 1.0
             best_D, best_V, best_gap = None, None, float("inf")
@@ -593,8 +608,8 @@ def main():
 
     print(f"  Pass 1 done: {len(results)} frames. Running backfill...", flush=True)
     # Pass 2: backfill - look ahead AND behind for cluster, estimate if same object
-    LOOKAHEAD = 4
-    LOOKBEHIND = 4
+    LOOKAHEAD = 10
+    LOOKBEHIND = 10
     AZ_TOL_DEG = 4.0  # same object: azimuth within 4 deg
     MAX_GAP_S = 1.0   # max time gap (seconds)
 
@@ -668,8 +683,8 @@ def main():
             r["speed_ms_adjusted"] = viz.get("speed_ms_adjusted")
 
     # Pass 3: no-CIPO temporal fill - forward+backward, search by (D,V), iterative
-    NO_CIPO_LOOKAHEAD = 4
-    NO_CIPO_LOOKBEHIND = 4
+    NO_CIPO_LOOKAHEAD = 10
+    NO_CIPO_LOOKBEHIND = 10
     NO_CIPO_MAX_GAP_S = 1.0
     NO_CIPO_RANGE_TOL_M = 3.0
     NO_CIPO_VEL_TOL_MS = 2.0
