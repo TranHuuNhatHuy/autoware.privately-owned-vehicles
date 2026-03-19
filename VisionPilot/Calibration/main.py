@@ -14,9 +14,9 @@ of VisionPilot's Perception Stacks
 
 
 def get_rotation_matrix(
-        pitch_deg: float,
-        yaw_deg: float,
-        roll_deg: float
+        pitch_deg:  float,
+        yaw_deg:    float,
+        roll_deg:   float
 ):
     """
     Convert Euler angles (in degrees) to a rotation matrix.
@@ -30,6 +30,7 @@ def get_rotation_matrix(
         - R: a 3x3 rotation matrix that later can be used to
              warp the original frame to match standard pose
              perspective.
+
     """
 
     pitch, yaw, roll = np.radians([
@@ -49,9 +50,9 @@ def get_rotation_matrix(
 
 
 def undistort_image(
-        image: np.ndarray,
-        intrinsic_matrix: np.ndarray,
-        distortion_coeffs: np.ndarray
+        image:              np.ndarray,
+        intrinsic_matrix:   np.ndarray,
+        distortion_coeffs:  np.ndarray
 ):
     """
     Undistort a front camera image using its specific
@@ -68,6 +69,7 @@ def undistort_image(
 
     Returns:
         - undistorted_image: yeah as the name suggests lol.
+
     """
 
     undistorted_image = cv2.undistort(
@@ -77,3 +79,38 @@ def undistort_image(
     )
 
     return undistorted_image
+
+
+def get_standard_intrinsics(
+        w_s:    int,
+        h_s:    int,
+        hfov_s: int
+):
+    """
+    Compute intrinsics matrix of the standard pose, by simple deriving
+    from the standard pose's image dimensions and its HFoV.
+
+    Parameters:
+        - w_s: width of standard pose image, in pixels.
+        - h_s: height of standard pose image, in pixels.
+        - hfov_s: HFoV of standard pose, in degrees.
+
+    Returns:
+        - K_s: intrinsics matrix of standard pose.
+
+    """
+
+    # Focal length
+    f_s = (w_s / 2) / np.tan(np.radians(hfov_s) / 2)
+
+    # Intrinsics matrix
+    K_s = np.array(
+        [
+            f_s, 0.0, w_s / 2,
+            0.0, f_s, h_s / 2,
+            0.0, 0.0, 1.0
+        ],
+        dtype = np.float64
+    )
+
+    return K_s
