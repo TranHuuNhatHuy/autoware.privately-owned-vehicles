@@ -4,7 +4,7 @@ from PIL import Image
 
 class AutoSpeedNetworkInfer():
     def __init__(self, checkpoint_path=''):
-        self.train_size = (640, 640)  # target width, height
+        self.train_size = (1024, 512)  # target width, height
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # print(f'Using {self.device} for inference')
 

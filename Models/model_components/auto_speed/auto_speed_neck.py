@@ -1,10 +1,10 @@
 import torch
-from Models.model_components.auto_drive.auto_drive_layers import (
+from Models.model_components.auto_speed.auto_speed_layers import (
     Conv, C3K2
 )
 
 
-class AutoDriveNeck(torch.nn.Module):
+class AutoSpeedNeck(torch.nn.Module):
     def __init__(self, width, depth, csp):
         super().__init__()
         self.up = torch.nn.Upsample(scale_factor=2)

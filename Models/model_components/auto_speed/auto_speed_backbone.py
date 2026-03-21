@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
-from Models.model_components.auto_drive.auto_drive_layers import (
+from Models.model_components.auto_speed.auto_speed_layers import (
     Conv, SPPF, C2PSA, ASC
 )
 
 
-class AutoDriveBackbone(torch.nn.Module):
+class AutoSpeedBackbone(torch.nn.Module):
     def __init__(self, width, depth, csp):
         super().__init__()
 
