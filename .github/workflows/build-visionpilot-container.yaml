@@ -68,7 +68,7 @@ jobs:
         with:
           platforms: ${{ matrix.arch-platform }}
           context: .
-          file: ./Modules/SDV/OpenADKit/Docker/Dockerfile
+          file: ./VisionPilot/SDV/OpenADKit/Docker/Dockerfile
           build-args: |
             ARCH=${{ matrix.arch }}
             ONNXRUNTIME_VERSION=${{ inputs.onnxruntime-version || env.DEFAULT_ONNXRUNTIME_VERSION }}
