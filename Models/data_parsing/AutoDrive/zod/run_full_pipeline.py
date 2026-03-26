@@ -28,7 +28,7 @@ def run_step1(seq: str, zod_root: Path) -> bool:
     """Run step1 timestamp association."""
     cmd = [
         sys.executable,
-        str(Path(__file__).parent / "scripts" / "step1_timestamp_association.py"),
+        str(Path(__file__).parent / "step1_timestamp_association.py"),
         "--sequence", seq,
         "--zod-root", str(zod_root),
     ]
