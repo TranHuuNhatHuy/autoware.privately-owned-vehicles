@@ -36,7 +36,6 @@ except ImportError:
     DBSCAN = None
 
 
-ZOD_ROOT = Path("/home/pranavdoma/Downloads/zod")
 MODEL_PATH = Path(__file__).resolve().parents[4] / "VisionPilot/ROS2/data/models/autodrive.pt"
 
 _LAT_BUFFER_M = 0.5        # ±0.5m lateral buffer for CIPO-radar (Scenario 1) azimuth association
@@ -392,7 +391,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--sequence", type=str, default="000479")
-    parser.add_argument("--zod-root", type=str, default=str(ZOD_ROOT), help="ZOD dataset root")
+    parser.add_argument("--zod-root", type=str, default=None, required=True, help="ZOD dataset root (contains images_blur_* folders, radar_front/, infos/, vehicle_data/, etc.)")
     parser.add_argument("--output", type=str, default=None, help="Output path for cipo_radar.json (default: cipo_radar_{seq}.json)")
     parser.add_argument("--model-path", type=str, default=str(MODEL_PATH), help="Path to AutoSpeed model (autodrive.pt)")
     args = parser.parse_args()
