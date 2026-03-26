@@ -14,9 +14,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ZOD_ROOT = Path("/home/pranavdoma/Downloads/zod")
-
-
 def radar_spherical_to_cartesian(pts):
     az = pts["azimuth_angle"].astype(np.float64)
     el = pts["elevation_angle"].astype(np.float64)
@@ -107,7 +104,7 @@ def draw_bev_with_labeled_dot(xy, labeled_x, labeled_y, scale=6, x_range=None, y
 def main():
     parser = argparse.ArgumentParser(description="Debug labels: bbox + labeled dot in BEV, no inference")
     parser.add_argument("--sequence", type=str, default="000330")
-    parser.add_argument("--zod-root", type=str, default=str(ZOD_ROOT))
+    parser.add_argument("--zod-root", type=str, default=None, required=True, help="Path to the ZOD dataset root")
     parser.add_argument("--labels-dir", type=str, default=None)
     parser.add_argument("--cipo-radar", type=str, default=None, help="cipo_radar.json path (has bbox, azimuth)")
     parser.add_argument("--output-dir", type=str, default=None)
