@@ -65,8 +65,8 @@ def train(args, params, run_dir, log_writer):
         model.train()
         if args.distributed:
             sampler.set_epoch(epoch)
-        if args.epochs - epoch == 10:
-            loader.dataset.mosaic = False
+        # if args.epochs - epoch == 10:
+        #     loader.dataset.mosaic = False
 
         p_bar = enumerate(loader)
 
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     parser.add_argument('--version', default='n', type=str)
     # parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--runs_dir', default="runs", type=str)
-    parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--epochs', default=50, type=int)
 
     args = parser.parse_args()
 

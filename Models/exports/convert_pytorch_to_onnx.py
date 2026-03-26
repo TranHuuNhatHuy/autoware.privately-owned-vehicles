@@ -52,8 +52,7 @@ def main():
         model = DomainSegNetwork(sceneSegNetwork)
     elif (model_name == 'AutoSpeed'):
         print('Processing AutoSpeed Network')
-        autospeed_builder = AutoSpeedNetwork()
-        model = autospeed_builder.build_model(version='n', num_classes=4)
+        model = AutoSpeedNetwork().build_model(version='n', num_classes=4)
     elif (model_name == 'EgoLanes'):
         print('Processing EgoLanes Network')
         model = EgoLanesNetwork()
@@ -81,7 +80,7 @@ def main():
     model = model.to(device)
     model = model.eval()
 
-    # Fake input data (AutoSpeed uses 640x640)
+    # Fake input data (AutoSpeed uses 1024x512)
     if model_name == 'AutoSpeed':
         input_shape=(1, 3, 512, 1024)
     elif model_name == 'AutoSteer':
@@ -106,7 +105,8 @@ def main():
                     input_names = ['input'],                          # input names
                     output_names = ['output'],                        # output names
                     dynamic_axes={'input' : {0 : 'batch_size'},       # variable length axes
-                                    'output' : {0 : 'batch_size'}})
+                                    'output' : {0 : 'batch_size'}},
+                    external_data=False)
 
     # Run checks on exported FP32 ONNX network
     ONNX_network = onnx.load(onnx_model_path)

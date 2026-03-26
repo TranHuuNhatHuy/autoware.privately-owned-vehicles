@@ -4,7 +4,7 @@ sys.path.append('../../../')
 from Models.model_components.auto_speed.auto_speed_backbone import AutoSpeedBackbone
 from Models.model_components.auto_speed.auto_speed_neck import AutoSpeedNeck
 from Models.model_components.auto_speed.auto_speed_head import AutoSpeedHead
-from Models.model_components.auto_speed.auto_speed_layers import Conv
+from Models.model_components.common_layers import Conv
 
 image_width = 1024
 image_height = 512
