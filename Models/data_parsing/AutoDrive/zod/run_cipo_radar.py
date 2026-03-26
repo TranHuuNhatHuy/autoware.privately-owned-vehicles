@@ -40,6 +40,7 @@ ZOD_ROOT = Path("/home/pranavdoma/Downloads/zod")
 MODEL_PATH = Path(__file__).resolve().parents[4] / "VisionPilot/ROS2/data/models/autodrive.pt"
 
 _LAT_BUFFER_M = 0.5        # ±0.5m lateral buffer for CIPO-radar (Scenario 1) azimuth association
+_LAT_BUFFER_RELAXED_M = 1.0  # fallback cone for CIPO when strict cone finds no cluster
 _LAT_BUFFER_PATH_M = 1.0   # no-CIPO path search: ±1.0m lateral from curvature path
 _MIN_ABS_SPEED_WORLD_MS = 0.5   # Scenario 3: |range_rate + ego_speed| > 0.5 → moving object
 _MIN_ABS_RANGE_RATE_FALLBACK = 0.5  # fallback when ego_speed not available
@@ -527,6 +528,10 @@ def main():
         # CIPO: tighter vel_scale so points with similar range_rate cluster together
         clusters = get_radar_clusters(radar_data, rec["radar_timestamp_ns"], lat_buffer=_LAT_BUFFER_M, vel_scale=1.0)
         cluster = find_nearest_cluster_lateral(clusters, az_radar, lat_buffer_m=_LAT_BUFFER_M)
+        relaxed_cone_used = False
+        if cluster is None:
+            cluster = find_nearest_cluster_lateral(clusters, az_radar, lat_buffer_m=_LAT_BUFFER_RELAXED_M)
+            relaxed_cone_used = cluster is not None
         cipo_from_path = False
         track_from_prev = False
 
@@ -590,6 +595,8 @@ def main():
                 out["cipo_from_path"] = True
             if track_from_prev:
                 out["track_from_prev"] = True
+            if relaxed_cone_used:
+                out["relaxed_cone_used"] = True
             results.append(out)
         else:
             bbox = [float(x1), float(y1), float(x2), float(y2)]
