@@ -37,7 +37,6 @@ except ImportError:
     DBSCAN = None
 
 
-ZOD_ROOT = Path("/home/pranavdoma/Downloads/zod")
 MODEL_PATH = Path(__file__).resolve().parents[4] / "VisionPilot/ROS2/data/models/autodrive.pt"
 _LAT_BUFFER_M = 0.5
 _LAT_BUFFER_PATH_M = 1.0  # when no CIPO: curvature path only, ±1.0m (no FOV/azimuth)
@@ -357,9 +356,10 @@ def draw_text_panel(img, lines, x=20, y0=50, font_scale=0.7, color=(0, 255, 0)):
 def main():
     parser = argparse.ArgumentParser(description="Debug CIPO-radar association viz")
     parser.add_argument("--sequence", type=str, default="000479")
-    parser.add_argument("--zod-root", type=str, default=str(ZOD_ROOT))
+    parser.add_argument("--zod-root", type=str, default=None, required=True, help="Path to the ZOD dataset root")
     parser.add_argument("--every", type=int, default=10, help="Output every N frames")
     parser.add_argument("--output-dir", type=str, default=None)
+    parser.add_argument("--model-path", type=str, default=str(MODEL_PATH), help="Path to AutoSpeed model (autodrive.pt)")
     args = parser.parse_args()
 
     seq = args.sequence
@@ -389,7 +389,7 @@ def main():
     radar_ext = np.array(calib["radar_extrinsics"])
 
     radar_data = np.load(assoc["radar_npy_path"], allow_pickle=True)
-    model = AutoSpeed50Infer(str(MODEL_PATH))
+    model = AutoSpeed50Infer(str(args.model_path))
 
     color_map = {1: (0, 0, 255), 2: (0, 255, 255), 3: (255, 255, 0)}
 
