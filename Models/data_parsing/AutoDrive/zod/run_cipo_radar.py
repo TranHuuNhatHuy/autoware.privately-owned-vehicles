@@ -411,7 +411,7 @@ def main():
     # Associations
     assoc_path = zod / "associations" / f"{seq}_associations.json"
     if not assoc_path.exists():
-        print(f"Run step1 first: python zod/scripts/step1_timestamp_association.py --sequence {seq}")
+        print(f"Run step1 first: python step1_timestamp_association.py --sequence {seq} --zod-root {zod}")
         return
 
     with open(assoc_path) as f:
