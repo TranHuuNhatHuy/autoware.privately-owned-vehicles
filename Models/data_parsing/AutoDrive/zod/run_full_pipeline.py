@@ -17,9 +17,7 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-ZOD_ROOT = Path("/home/pranavdoma/Downloads/zod")
 REPO_ROOT = Path(__file__).resolve().parents[4]
-ZOD_SCRIPTS = Path("/home/pranavdoma/Downloads/zod/scripts")
 OUTPUT_BASE = Path(__file__).parent / "output"
 
 # Allow zod_utils import
@@ -30,7 +28,7 @@ def run_step1(seq: str, zod_root: Path) -> bool:
     """Run step1 timestamp association."""
     cmd = [
         sys.executable,
-        str(ZOD_SCRIPTS / "step1_timestamp_association.py"),
+        str(Path(__file__).parent / "scripts" / "step1_timestamp_association.py"),
         "--sequence", seq,
         "--zod-root", str(zod_root),
     ]
@@ -142,7 +140,7 @@ def run_debug_viz(seq: str, zod_root: Path, output_dir: Path, every: int = 20) -
 def main():
     parser = argparse.ArgumentParser(description="Full pipeline: associations -> CIPO-radar -> labels -> debug viz")
     parser.add_argument("--sequence", type=str, default="000330")
-    parser.add_argument("--zod-root", type=str, default=str(ZOD_ROOT))
+    parser.add_argument("--zod-root", type=str, default=None, required=True, help="Path to the ZOD dataset root (contains associations/, radar_front/, vehicle_data/, images_blur_* folders, etc.)")
     parser.add_argument("--skip-step1", action="store_true", help="Skip step1 if associations exist")
     parser.add_argument("--skip-labels", action="store_true", help="Skip label generation")
     parser.add_argument("--skip-viz", action="store_true", help="Skip debug viz")
