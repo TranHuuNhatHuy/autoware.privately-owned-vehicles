@@ -1,7 +1,6 @@
 import os
 import re
 import copy
-import csv
 import warnings
 from argparse import ArgumentParser
 from pathlib import Path
@@ -13,7 +12,7 @@ from torch.utils import data
 
 import auto_speed_util as util
 from Models.data_utils.load_data_auto_speed import LoadDataAutoSpeed
-from Models.model_components.auto_speed_network import AutoSpeedNetwork
+from Models.model_components.auto_speed.auto_speed_network import AutoSpeedNetwork
 
 from torch.utils.tensorboard import SummaryWriter
 
@@ -39,7 +38,7 @@ def train(args, params, run_dir, log_writer):
     filenames = [f.as_posix() for f in current_dir.rglob("*") if f.is_file()]
 
     sampler = None
-    dataset = LoadDataAutoSpeed(filenames, args.input_size, params, augment=True)
+    dataset = LoadDataAutoSpeed(filenames, args.input_width, args.input_height, params, augment=True)
 
     if args.distributed:
         sampler = data.distributed.DistributedSampler(dataset)
@@ -66,8 +65,8 @@ def train(args, params, run_dir, log_writer):
         model.train()
         if args.distributed:
             sampler.set_epoch(epoch)
-        if args.epochs - epoch == 10:
-            loader.dataset.mosaic = False
+        # if args.epochs - epoch == 10:
+        #     loader.dataset.mosaic = False
 
         p_bar = enumerate(loader)
 
@@ -161,7 +160,7 @@ def val(args, params, run_dir, model=None):
     current_dir = Path(args.dataset + "/images/val/")
     filenames = [f.as_posix() for f in current_dir.rglob("*") if f.is_file()]
 
-    dataset = LoadDataAutoSpeed(filenames, args.input_size, params, augment=False)
+    dataset = LoadDataAutoSpeed(filenames, args.input_width, args.input_height, params, augment=False)
     loader = data.DataLoader(dataset, batch_size=4, shuffle=False, num_workers=4,
                              pin_memory=True, collate_fn=LoadDataAutoSpeed.collate_fn)
 
@@ -229,7 +228,7 @@ def val(args, params, run_dir, model=None):
 
 def profile(args, params):
     import thop
-    shape = (1, 3, args.input_size, args.input_size)
+    shape = (1, 3, args.input_height, args.input_width)
     model = AutoSpeedNetwork().build_model(version=args.version, num_classes=4)
     model.eval()
     model(torch.zeros(shape))
@@ -262,14 +261,15 @@ def get_next_run(path="."):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--dataset', help="dataset directory path")
-    parser.add_argument('--input-size', default=640, type=int)
+    parser.add_argument('--input-width', default=1024, type=int)
+    parser.add_argument('--input-height', default=512, type=int)
     parser.add_argument('--batch-size', default=32, type=int)
     parser.add_argument('--local-rank', default=0, type=int)
     parser.add_argument('--local_rank', default=0, type=int)
     parser.add_argument('--version', default='n', type=str)
     # parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--runs_dir', default="runs", type=str)
-    parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--epochs', default=50, type=int)
 
     args = parser.parse_args()
 

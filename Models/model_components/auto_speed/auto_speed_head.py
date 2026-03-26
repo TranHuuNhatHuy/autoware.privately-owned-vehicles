@@ -1,6 +1,6 @@
 import math
 import torch
-from Models.model_components.auto_speed_layers import (
+from Models.model_components.common_layers import (
     Conv, DFL
 )
 
@@ -66,10 +66,14 @@ class AutoSpeedHead(torch.nn.Module):
         return torch.cat(tensors=(box * self.strides, cls.sigmoid()), dim=1)
 
     def initialize_biases(self):
+        img_w, img_h = 1024, 512
+
         # Initialize biases
         # WARNING: requires stride availability
         for box, cls, s in zip(self.box, self.cls, self.stride):
             # box
             box[-1].bias.data[:] = 1.0
             # cls (.01 objects, 80 classes, 640 image)
-            cls[-1].bias.data[:self.nc] = math.log(5 / self.nc / (640 / s) ** 2)
+            # cls[-1].bias.data[:self.nc] = math.log(5 / self.nc / (640 / s) ** 2)
+
+            cls[-1].bias.data[:self.nc] = math.log(5 / (self.nc * ((img_w / s) * (img_h / s))))

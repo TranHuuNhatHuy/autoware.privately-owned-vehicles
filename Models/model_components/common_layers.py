@@ -180,66 +180,15 @@ class C3K2(torch.nn.Module):
         return self.conv2(torch.cat(y, dim=1))
 
 
-"""
-AutoSpeed Context block
-"""
-
-
-# class ASC(torch.nn.Module):
-#     # def __init__(self, H, W, C):
-#     def __init__(self, in_ch, out_ch, n, csp, r):
-#         super(ASC, self).__init__()
-#
-#         # Standard
-#         self.in_ch = in_ch
-#         self.GeLU = nn.GELU()
-#
-#         # Context - Expansion Layers
-#         # self.expand_layer_0 = nn.Conv1d(in_ch, self.H*self.W, 1, 1, 1)
-#         # self.expand_layer_0 = nn.Linear(in_ch, 160 * 160)
-#
-#         # Context - Extraction Layers
-#         self.context_layer_0 = nn.Conv2d(1, in_ch // r, 3, 1, 1)
-#         self.context_layer_1 = nn.Conv2d(in_ch // r, in_ch, 3, 1, 1)
-#         self.context_layer_2 = nn.Conv2d(in_ch, out_ch, 3, 1, 1)
-#
-#     def forward(self, x):
-#         b, c, h, w = x.size()
-#         # Pooling and averaging channel layers to get a single vector
-#         y = torch.mean(x, dim=[2, 3])
-#
-#         # Expansion
-#         # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#         expand_layer_0 = nn.Linear(self.in_ch, h * w, device=x.device, dtype=x.dtype).to(x.device)
-#         c0 = expand_layer_0(y)
-#         c0 = self.GeLU(c0)
-#         c1 = c0.view(b, h, w)
-#         c1 = self.GeLU(c1)
-#
-#         # Context
-#         c2 = self.context_layer_0(c1.unsqueeze(1))
-#         # c2 = self.context_layer_0(c1)
-#         c2 = self.GeLU(c2)
-#         c3 = self.context_layer_1(c2)
-#         c4 = self.GeLU(c3)
-#         # Attention
-#         c4 = c4 * x + x
-#         context = self.GeLU(c4)
-#         context = self.context_layer_2(context)
-#         # context = self.GeLU(context)
-#
-#         return context
-
-
-class ASC(torch.nn.Module):
+class CTX(torch.nn.Module):
     def __init__(self, in_ch, out_ch, n, csp, r, h, w):
-        super(ASC, self).__init__()
+        super(CTX, self).__init__()
 
         # Standard
         self.in_ch = in_ch
         self.h = h
         self.w = w
-        self.GeLU = nn.GELU()
+        self.SiLU = nn.SiLU()
 
         # Context - Expansion Layers
         self.exp0 = nn.Conv1d(self.in_ch, self.h * self.w, 3, 1, 1)
@@ -258,20 +207,20 @@ class ASC(torch.nn.Module):
         # Expansion
         # c0 = self.exp0(y.unsqueeze(2))
         c0 = self.exp0(y.squeeze(-1))
-        c0 = self.GeLU(c0)
+        c0 = self.SiLU(c0)
         c1 = c0.view(b, 1, self.h, self.w)
-        c1 = self.GeLU(c1)
+        c1 = self.SiLU(c1)
 
         # Context
         c2 = self.ctx0(c1)
-        c2 = self.GeLU(c2)
+        c2 = self.SiLU(c2)
         c3 = self.ctx1(c2)
-        c4 = self.GeLU(c3)
+        c4 = self.SiLU(c3)
 
         # Attention
         c4 = c4 * x + x
 
-        context = self.GeLU(c4)
+        context = self.SiLU(c4)
         context = self.ctx2(context)
 
         return context

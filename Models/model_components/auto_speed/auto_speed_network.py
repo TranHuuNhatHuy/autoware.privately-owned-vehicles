@@ -1,11 +1,13 @@
 import torch
 import sys
-sys.path.append('../../')
-from Models.model_components.auto_speed_backbone import AutoSpeedBackbone
-from Models.model_components.auto_speed_neck import AutoSpeedNeck
-from Models.model_components.auto_speed_head import AutoSpeedHead
-from Models.model_components.auto_speed_layers import Conv
+sys.path.append('../../../')
+from Models.model_components.auto_speed.auto_speed_backbone import AutoSpeedBackbone
+from Models.model_components.auto_speed.auto_speed_neck import AutoSpeedNeck
+from Models.model_components.auto_speed.auto_speed_head import AutoSpeedHead
+from Models.model_components.common_layers import Conv
 
+image_width = 1024
+image_height = 512
 
 def fuse_conv(conv, norm):
     fused_conv = torch.nn.Conv2d(conv.in_channels,
@@ -33,11 +35,9 @@ class YOLO(torch.nn.Module):
         self.net = AutoSpeedBackbone(width, depth, csp)
         self.fpn = AutoSpeedNeck(width, depth, csp)
 
-        # img_dummy = torch.zeros(1, width[0], 256, 256)
-        img_dummy = torch.zeros(1, width[0], 640, 640)
+        img_dummy = torch.zeros(1, width[0], image_height, image_width)
         self.head = AutoSpeedHead(num_classes, (width[3], width[4], width[5]))
-        # self.head.stride = torch.tensor([256 / x.shape[-2] for x in self.forward(img_dummy)])
-        self.head.stride = torch.tensor([640 / x.shape[-2] for x in self.forward(img_dummy)])
+        self.head.stride = torch.tensor([img_dummy.shape[-2] / x.shape[-2] for x in self.forward(img_dummy)])
         self.stride = self.head.stride
         self.head.initialize_biases()
 

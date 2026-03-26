@@ -9,7 +9,7 @@ sys.path.append('..')
 from Models.model_components.scene_seg_network import SceneSegNetwork
 from Models.model_components.scene_3d_network import Scene3DNetwork
 from Models.model_components.domain_seg_network import DomainSegNetwork
-from Models.model_components.auto_speed_network import AutoSpeedNetwork
+from Models.model_components.auto_speed.auto_speed_network import AutoSpeedNetwork
 from Models.model_components.ego_lanes_network import EgoLanesNetwork
 from Models.model_components.auto_steer_network import AutoSteerNetwork
 def main():
@@ -52,8 +52,7 @@ def main():
         model = DomainSegNetwork(sceneSegNetwork)
     elif (model_name == 'AutoSpeed'):
         print('Processing AutoSpeed Network')
-        autospeed_builder = AutoSpeedNetwork()
-        model = autospeed_builder.build_model(version='n', num_classes=4)
+        model = AutoSpeedNetwork().build_model(version='n', num_classes=4)
     elif (model_name == 'EgoLanes'):
         print('Processing EgoLanes Network')
         model = EgoLanesNetwork()
@@ -81,10 +80,10 @@ def main():
     model = model.to(device)
     model = model.eval()
 
-    # Fake input data (AutoSpeed uses 640x640)
+    # Fake input data (AutoSpeed uses 1024x512)
     if model_name == 'AutoSpeed':
-        input_shape=(1, 3, 640, 640)
-    if model_name == 'AutoSteer':
+        input_shape=(1, 3, 512, 1024)
+    elif model_name == 'AutoSteer':
         input_shape=(1, 6, 80, 160)
     else:
         input_shape=(1, 3, 320, 640)
@@ -101,12 +100,13 @@ def main():
                     input_data,                                       # model input
                     onnx_model_path,                                  # path
                     export_params=True,                               # store the trained parameter weights inside the model file
-                    opset_version=14,                                 # the ONNX version to export the model to
+                    opset_version=18,                                 # the ONNX version to export the model to
                     do_constant_folding=True,                         # constant folding for optimization
                     input_names = ['input'],                          # input names
                     output_names = ['output'],                        # output names
                     dynamic_axes={'input' : {0 : 'batch_size'},       # variable length axes
-                                    'output' : {0 : 'batch_size'}})
+                                    'output' : {0 : 'batch_size'}},
+                    external_data=False)
 
     # Run checks on exported FP32 ONNX network
     ONNX_network = onnx.load(onnx_model_path)

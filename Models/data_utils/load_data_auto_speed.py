@@ -7,17 +7,17 @@ import numpy
 import torch
 from PIL import Image
 from torch.utils import data
-import numpy as np
 
 FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'
 
 
 class LoadDataAutoSpeed(data.Dataset):
-    def __init__(self, filenames, input_size, params, augment):
+    def __init__(self, filenames, input_width, input_height, params, augment):
         self.params = params
         self.mosaic = augment
         self.augment = augment
-        self.input_size = input_size
+        self.input_width = input_width
+        self.input_height = input_height
 
         # Read labels
         labels = self.load_label(filenames)
@@ -47,14 +47,13 @@ class LoadDataAutoSpeed(data.Dataset):
             h, w = image.shape[:2]
 
             # Resize
-            image, ratio, pad = resize(image, self.input_size, self.augment)
+            image, ratio, pad = resize(image, self.input_width, self.input_height, self.augment)
 
             label = self.labels[index].copy()
             if label.size:
                 label[:, 1:] = wh2xy(label[:, 1:], ratio[0] * w, ratio[1] * h, pad[0], pad[1])
             if self.augment:
                 image, label = random_perspective(image, label, self.params)
-
         nl = len(label)  # number of labels
         h, w = image.shape[:2]
         cls = label[:, 0:1]
@@ -81,8 +80,8 @@ class LoadDataAutoSpeed(data.Dataset):
         target_cls = torch.zeros((nl, 1))
         target_box = torch.zeros((nl, 4))
         if nl:
-            target_cls = torch.from_numpy(cls).view(-1, 1)  # (N,1)
-            target_box = torch.from_numpy(box).view(-1, 4)  # (N,4)
+            target_cls = torch.from_numpy(cls)
+            target_box = torch.from_numpy(box)
 
         # Convert HWC to CHW, BGR to RGB
         sample = image.transpose((2, 0, 1))[::-1]
@@ -96,7 +95,7 @@ class LoadDataAutoSpeed(data.Dataset):
     def load_image(self, i):
         image = cv2.imread(self.filenames[i])
         h, w = image.shape[:2]
-        r = self.input_size / max(h, w)
+        r = min(self.input_height / h, self.input_width / w)
         if r != 1:
             image = cv2.resize(image,
                                dsize=(int(w * r), int(h * r)),
@@ -105,12 +104,12 @@ class LoadDataAutoSpeed(data.Dataset):
 
     def load_mosaic(self, index, params):
         label4 = []
-        border = [-self.input_size // 2, -self.input_size // 2]
-        image4 = numpy.full((self.input_size * 2, self.input_size * 2, 3), 0, dtype=numpy.uint8)
+        border = [-self.input_height // 2, -self.input_width // 2]
+        image4 = numpy.full((self.input_height * 2, self.input_width * 2, 3), 0, dtype=numpy.uint8)
         y1a, y2a, x1a, x2a, y1b, y2b, x1b, x2b = (None, None, None, None, None, None, None, None)
 
-        xc = int(random.uniform(-border[0], 2 * self.input_size + border[1]))
-        yc = int(random.uniform(-border[0], 2 * self.input_size + border[1]))
+        xc = int(random.uniform(0, 2 * self.input_width))
+        yc = int(random.uniform(0, 2 * self.input_height))
 
         indices = [index] + random.choices(self.indices, k=3)
         random.shuffle(indices)
@@ -131,7 +130,7 @@ class LoadDataAutoSpeed(data.Dataset):
             if i == 1:  # top right
                 x1a = xc
                 y1a = max(yc - shape[0], 0)
-                x2a = min(xc + shape[1], self.input_size * 2)
+                x2a = min(xc + shape[1], self.input_width * 2)
                 y2a = yc
                 x1b = 0
                 y1b = shape[0] - (y2a - y1a)
@@ -141,7 +140,7 @@ class LoadDataAutoSpeed(data.Dataset):
                 x1a = max(xc - shape[1], 0)
                 y1a = yc
                 x2a = xc
-                y2a = min(self.input_size * 2, yc + shape[0])
+                y2a = min(self.input_height * 2, yc + shape[0])
                 x1b = shape[1] - (x2a - x1a)
                 y1b = 0
                 x2b = shape[1]
@@ -149,8 +148,8 @@ class LoadDataAutoSpeed(data.Dataset):
             if i == 3:  # bottom right
                 x1a = xc
                 y1a = yc
-                x2a = min(xc + shape[1], self.input_size * 2)
-                y2a = min(self.input_size * 2, yc + shape[0])
+                x2a = min(xc + shape[1], self.input_width * 2)
+                y2a = min(self.input_height * 2, yc + shape[0])
                 x1b = 0
                 y1b = 0
                 x2b = min(shape[1], x2a - x1a)
@@ -168,8 +167,11 @@ class LoadDataAutoSpeed(data.Dataset):
 
         # Concat/clip labels
         label4 = numpy.concatenate(label4, 0)
-        for x in label4[:, 1:]:
-            numpy.clip(x, 0, 2 * self.input_size, out=x)
+
+        label4[:, 1] = label4[:, 1].clip(0, 2 * self.input_width)
+        label4[:, 2] = label4[:, 2].clip(0, 2 * self.input_height)
+        label4[:, 3] = label4[:, 3].clip(0, 2 * self.input_width)
+        label4[:, 4] = label4[:, 4].clip(0, 2 * self.input_height)
 
         # Augment
         image4, label4 = random_perspective(image4, label4, params, border)
@@ -178,22 +180,22 @@ class LoadDataAutoSpeed(data.Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        samples, cls_list, box_list, _ = zip(*batch)
+        samples, cls, box, indices = zip(*batch)
 
-        # Concatenate class and box tensors safely
-        cls = torch.cat([c.view(-1, 1) for c in cls_list], dim=0)  # (total_targets,1)
-        box = torch.cat([b.view(-1, 4) for b in box_list], dim=0)  # (total_targets,4)
+        # cls = torch.cat(cls, dim=0)
+        # box = torch.cat(box, dim=0)
 
-        # Generate target image indices
-        idx = []
-        for i, c in enumerate(cls_list):
-            idx.append(torch.full((c.shape[0],), i, dtype=torch.long))
-        idx = torch.cat(idx, dim=0)
+        cls = torch.cat([c.view(-1, 1) for c in cls], dim=0)  # (total_targets,1)
+        box = torch.cat([b.view(-1, 4) for b in box], dim=0)  # (total_targets,4)
+
+        new_indices = list(indices)
+        for i in range(len(indices)):
+            new_indices[i] += i
+        indices = torch.cat(new_indices, dim=0)
 
         targets = {'cls': cls,
                    'box': box,
-                   'idx': idx}
-
+                   'idx': indices}
         return torch.stack(samples, dim=0), targets
 
     @staticmethod
@@ -293,19 +295,19 @@ def augment_hsv(image, params):
     cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR, dst=image)  # no return needed
 
 
-def resize(image, input_size, augment):
+def resize(image, input_width, input_height, augment):
     # Resize and pad image while meeting stride-multiple constraints
     shape = image.shape[:2]  # current shape [height, width]
 
     # Scale ratio (new / old)
-    r = min(input_size / shape[0], input_size / shape[1])
+    r = min(input_height / shape[0], input_width / shape[1])
     if not augment:  # only scale down, do not scale up (for better val mAP)
         r = min(r, 1.0)
 
     # Compute padding
     pad = int(round(shape[1] * r)), int(round(shape[0] * r))
-    w = (input_size - pad[0]) / 2
-    h = (input_size - pad[1]) / 2
+    w = (input_width - pad[0]) / 2
+    h = (input_height - pad[1]) / 2
 
     if shape[::-1] != pad:  # resize
         image = cv2.resize(image,
@@ -413,6 +415,6 @@ class Albumentations:
                                bboxes=box,
                                class_labels=cls)
             image = x['image']
-            box = np.asarray(x["bboxes"], dtype=np.float32).reshape(-1, 4)  # (N,4)
-            cls = np.asarray(x["class_labels"], dtype=np.int64).reshape(-1, 1)  # (N,1)
+            box = numpy.array(x['bboxes'])
+            cls = numpy.array(x['class_labels'])
         return image, box, cls

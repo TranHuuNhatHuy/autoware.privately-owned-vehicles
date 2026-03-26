@@ -44,5 +44,5 @@ python3 converter.py -d <DATASET_DIR>
 Test converted dataset:
 
 ```
-python3 converter.py -i <IMAGE_PATH>
+python3 test_conversion.py -i <IMAGE_PATH>
 ```
