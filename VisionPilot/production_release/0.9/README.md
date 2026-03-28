@@ -1,6 +1,11 @@
 # VisionPilot 0.9 – Lateral + Longitudinal Release
 
-This release runs **lateral control** (EgoLanes + AutoSteer + PID) and **longitudinal tracking** (AutoSpeed + ObjectFinder + SpeedPlanner + longitudinal PID) in parallel, and publishes all outputs via POSIX shared memory for external consumers.
+## Description
+Vision Pilot 0.9 processes images from a single front-facing camera to enable both ADAS features and highway autopilot within a single driving lane. Compared to the prior release, Vision Pilot 0.5, this version of the system incorporates both lateral perception and planning modules alongside longitudinal perception and planning modules in two parallel streams, through the additional integration of the AutoSpeed neural network for closest-in-path-object detection. This enables features such as Autonomous Cruise Control, Forward Collision Warning, and Automatic Emergency braking. In order to estimate the distance of the closest-in-path-object, a homography transform is utilized which maps image pixels to road coordinates, providing an estimate of real-world distances in metres. A Kalman filter is used to track the distance of the closest-in-path-object and estimate its velocity. To maintain a safe following distance to the lead vehicle, the system complies with [Mobileye's Responsibility Sensitive Safety framework](https://www.mobileye.com/technology/responsibility-sensitive-safety/).
+
+**System Architecture**
+
+<img src="../../Media/VisionPilot_0.9.png" width="100%">
 
 Installation Ubuntu 22.04 X86 System
 
