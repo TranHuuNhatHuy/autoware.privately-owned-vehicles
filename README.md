@@ -44,7 +44,7 @@ We utilize an **End-to-End AI Architecture** in which each component technology 
 ## Technology Roadmap
 Rather than going for a single moonshot, we are sequentially building the core software stack of the Vision Pilot system in a modular manner, and releasing versions of the Vision Pilot system that serve a core customer need, where each new release expands upon the operational-design-domain, technology prowess and safety envelope of the prior release.
 
-As part of our technology roadmap, we will sequentially develop three versions of the Autoware Autonomous Highway Pilot System, these are:
+As part of our technology roadmap, we will sequentially develop multiple versions of the Autoware Autonomous Highway Pilot System, these are:
 
 ### Vision Pilot
 
@@ -63,6 +63,3 @@ As part of our technology roadmap, we will sequentially develop three versions o
 
 ## Models
 The Models folder contains all code related to AI model development
-
-## Modules
-Specific code modules for features such as Software-Defined vehicle implementaiton, Simulation, Control etc. can be found in the Modules folder.
