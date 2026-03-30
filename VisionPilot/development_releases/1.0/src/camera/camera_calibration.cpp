@@ -64,4 +64,56 @@ namespace autoware_pov::vision::camera {
 
     }
 
-}
+    cv::Mat CameraCalibration::processFrame(
+        const cv::Mat& raw_frame
+    ) {
+        
+        if (raw_frame.empty()) {
+            throw std::invalid_argument(
+                "Received empty frame in CameraCalibrator"
+            );
+        }
+
+        cv::Mat undistorted_frame;
+        cv::Mat final_frame;
+
+        // 1. Undistortion
+        cv::undistort(
+            raw_frame, 
+            undistorted_frame, 
+            K_inf_, 
+            dist_coeffs_
+        );
+
+        // 2. Apply pre-computed homography
+        cv::warpPerspective(
+            undistorted_frame,
+            final_frame,
+            H_warp_,
+            target_size_,
+            cv::INTER_LINEAR,
+            cv::BORDER_REPLICATE
+        );
+
+        return final_frame;
+
+    }
+
+    cv::Mat CameraCalibration::getRotationMatrix(
+        double pitch, 
+        double yaw, 
+        double roll
+    ) {
+        
+        cv::Mat rot_vec = (
+            cv::Mat_<double>(3, 1) << pitch, yaw, roll
+        );
+        cv::Mat R;
+        cv::Rodrigues(rot_vec, R);
+
+        return R;
+
+    }
+
+
+}   // namespace autoware_pov::vision::camera
