@@ -66,7 +66,7 @@ Config ConfigReader::loadFromFile(const std::string& config_path) {
         props.find("camera_calibration.standard_pose_config_path") != props.end()
             ? props["camera_calibration.standard_pose_config_path"]
             : "";
-
+ 
     // Longitudinal & pipeline tuning (with sensible defaults if keys are missing)
     config.longitudinal.autospeed_conf_thresh =
         props.find("longitudinal.autospeed.conf_thresh") != props.end()
