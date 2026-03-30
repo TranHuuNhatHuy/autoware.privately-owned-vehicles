@@ -4,7 +4,7 @@
  * perspective warping for E2E perception models.
  */
 
-#include "camera_calibration.hpp"
+#include "camera/camera_calibration.hpp"
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <stdexcept>
@@ -21,11 +21,13 @@ namespace autoware_pov::vision::camera {
     ) {
         
         // 1. Store inference intrinsics
-
-        K_inf_ = inference_intrinsics.K.clone();
+        K_inference_ = inference_intrinsics.K.clone();
         dist_coeffs_ = inference_intrinsics.dist_coeffs.clone();
-            if (K_inference_.type() != CV_64F) {
-                K_inference_.convertTo(K_inference_, CV_64F);  // Ensure double precision
+        if (K_inference_.type() != CV_64F) {
+            K_inference_.convertTo(K_inference_, CV_64F);  // Ensure double precision
+        }
+        if (dist_coeffs_.type() != CV_64F) {
+            dist_coeffs_.convertTo(dist_coeffs_, CV_64F);
         }
         target_size_ = cv::Size(standard_intrinsics.width, standard_intrinsics.height); // Target resolution
 
@@ -55,7 +57,9 @@ namespace autoware_pov::vision::camera {
             K_std_mod.convertTo(K_std_mod, CV_64F); // Ensure double precision
         }
 
-        double scale_factor = standard_extrinsics.mounting_height / inference_extrinsics.mounting_height;
+        if (inference_extrinsics.mount_height_m <= 0.0) {
+            throw std::invalid_argument("inference mount_height_m must be > 0");
+        }
         double scale_factor = standard_extrinsics.mount_height_m / inference_extrinsics.mount_height_m;
         K_std_mod.at<double>(1, 1) *= scale_factor; // Scale f_y
 
