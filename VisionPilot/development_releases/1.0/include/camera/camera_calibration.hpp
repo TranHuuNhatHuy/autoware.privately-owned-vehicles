@@ -79,7 +79,7 @@ namespace autoware_pov::vision::camera {
                 double pitch_rad,
                 double yaw_rad,
                 double roll_rad
-            )
+            );
     };
 
 }   // namespace autoware_pov::vision::camera

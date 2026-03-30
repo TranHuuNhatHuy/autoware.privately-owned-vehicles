@@ -24,8 +24,8 @@ namespace autoware_pov::vision::camera {
 
         K_inf_ = inference_intrinsics.K.clone();
         dist_coeffs_ = inference_intrinsics.dist_coeffs.clone();
-        if (K_inf_.type() != CV_64F) {
-            K_inf_.convertTo(K_inf_, CV_64F);  // Ensure double precision
+            if (K_inference_.type() != CV_64F) {
+                K_inference_.convertTo(K_inference_, CV_64F);  // Ensure double precision
         }
         target_size_ = cv::Size(standard_intrinsics.width, standard_intrinsics.height); // Target resolution
 
@@ -56,11 +56,12 @@ namespace autoware_pov::vision::camera {
         }
 
         double scale_factor = standard_extrinsics.mounting_height / inference_extrinsics.mounting_height;
+        double scale_factor = standard_extrinsics.mount_height_m / inference_extrinsics.mount_height_m;
         K_std_mod.at<double>(1, 1) *= scale_factor; // Scale f_y
 
         // 5. Compute master homography matrix
         // H_warp = K_std_mod * R_rel * K_inf^-1
-        H_warp_ = K_std_mod * R_rel * K_inf_.inv();
+        H_warp_ = K_std_mod * R_rel * K_inference_.inv();
 
     }
 
@@ -81,7 +82,7 @@ namespace autoware_pov::vision::camera {
         cv::undistort(
             raw_frame, 
             undistorted_frame, 
-            K_inf_, 
+            K_inference_, 
             dist_coeffs_
         );
 
