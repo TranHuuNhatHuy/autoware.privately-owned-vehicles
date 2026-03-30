@@ -57,7 +57,7 @@ Config ConfigReader::loadFromFile(const std::string& config_path) {
     config.camera_calibration.enabled =
         props.find("camera_calibration.enabled") != props.end()
             ? parseBool(props["camera_calibration.enabled"])
-            : false;
+            : true;
     config.camera_calibration.inference_camera_config_path =
         props.find("camera_calibration.inference_camera_config_path") != props.end()
             ? props["camera_calibration.inference_camera_config_path"]
